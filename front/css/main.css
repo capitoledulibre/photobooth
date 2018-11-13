@@ -1,0 +1,34 @@
+body {
+  background-color: white;
+  color: black
+}
+h3 {
+  font-size: 200%;
+}
+
+.videos {
+  width: 1300px;
+  margin-top: 3rem;
+}
+
+.border {
+  border-radius: 5px 5px;
+  border: 2px solid black !important;
+}
+
+#title {
+  width: 30rem;
+}
+
+#form {
+  width: 50rem;
+}
+
+#snap {
+  margin-left: 18rem;
+}
+
+#debounce {
+  margin-left: 0rem;
+  text-align: center
+}

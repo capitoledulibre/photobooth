@@ -1,0 +1,12 @@
+{
+  "name": "photobooth-front",
+  "version": "1.0.0",
+  "description": "Photobooth front project for 'Le Capitole du Libre' 2018",
+  "scripts": {
+    "start": "node --experimental-modules server.mjs"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.16.4"
+  }
+}
