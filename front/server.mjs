@@ -10,4 +10,6 @@ app.use('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'))
 })
 
-app.listen(1234, () => console.log('listening on http://localhost:1234'))
+const port = process.env.FRONT_PORT
+
+app.listen(port, () => console.log(`listening on http://localhost:${port}/`))
