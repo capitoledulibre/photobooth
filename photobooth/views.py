@@ -7,6 +7,7 @@ from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.conf import settings
 from django.core.mail import EmailMessage
+from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -52,6 +53,9 @@ def photo(request):
         msg_img = fileobj.read()
         msg.attach('capitole-du-libre.jpeg', msg_img, 'image/jpeg')
     msg.send()
+
+    photo.email_sent_at = timezone.now()
+    photo.save()
 
     return HttpResponse(
         'ok',
