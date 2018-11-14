@@ -3,6 +3,9 @@ let canvas = document.getElementById('canvas')
 let context = canvas.getContext('2d')
 let debounce = document.getElementById('debounce')
 let email = document.getElementById('inputEmail')
+let error = document.getElementById('error')
+let success = document.getElementById('success')
+let secondScreenContainer = document.getElementById('secondScreenContainer')
 let interval = null
 let image = null
 let i = 5
@@ -15,48 +18,54 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       video.play()
     })
     .catch(error => {
-      console.log(error)
+      console.error(error)
       alert('Can not access to camera :/')
     })
 }
 
 // Trigger photo take
 document.getElementById('snap').addEventListener('click', function() {
+  document.getElementById('snap').style.display = 'none'
   debounce.innerHTML = 'Pensez à sourir :)'
-  interval=setInterval(() => {
-    if(i===0) {
+  interval = setInterval(() => {
+    if (i === 0) {
+      video.style.display = 'none'
+      secondScreenContainer.style.display = 'block'
       clearInterval(interval)
-      debounce.innerText=''
-      context.drawImage(video,0,0,640,480)
+      debounce.innerText = ''
+      context.drawImage(video, 0, 0, 1049, 540)
       image = canvasToBase64()
-      i=5
+      i = 5
     } else {
-      debounce.innerText=i+'...'
-      i=i-1
+      debounce.innerText = i + '...'
+      i = i - 1
     }
   }, 1000)
 })
 
+email.addEventListener('input', function() {
+  error.innerText = ''
+})
+
 document.getElementById('submit').addEventListener('click', function(e) {
   e.preventDefault()
-  let error = ''
-  if (!email.value || email.value === '') {
-    error += 'Veuillez insérer une adresse mail valide \n'
+  if (!email.value || email.value === '' || !validateEmail(email.value)) {
+    error.innerText = 'Veuillez insérer une adresse mail valide'
+    return
   }
-  if (!image) {
-    error += 'Veuillez prendre une photo'
-  }
-  if(error) {
-    alert(error)
-  } else {
-    console.log('send photo and email to backend')
-    email.value = ''
-    const context = canvas.getContext('2d');
-    context.clearRect(0, 0, canvas.width, canvas.height);
-    alert('Vous devriez recevoir votre photo dans quelques instants :)')
-  }
+  secondScreenContainer.style.display = 'none'
+  success.style.display = 'block'
+  console.log('send photo and email to backend')
+  setTimeout(() => {
+    window.location.reload()
+  }, 5000)
 })
 
 function canvasToBase64() {
   return canvas.toDataURL('image/png')
+}
+
+function validateEmail(email) {
+  var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
+  return re.test(email)
 }
