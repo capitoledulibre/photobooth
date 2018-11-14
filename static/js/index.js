@@ -24,7 +24,7 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
 }
 
 // Trigger photo take
-document.getElementById('snap').addEventListener('click', function() {
+document.getElementById('snap').addEventListener('click', function () {
   document.getElementById('snap').style.display = 'none'
   debounce.innerHTML = 'Pensez à sourir :)'
   interval = setInterval(() => {
@@ -43,26 +43,35 @@ document.getElementById('snap').addEventListener('click', function() {
   }, 1000)
 })
 
-email.addEventListener('input', function() {
+email.addEventListener('input', function () {
   error.innerText = ''
 })
 
-document.getElementById('submit').addEventListener('click', function(e) {
+document.getElementById('submit').addEventListener('click', function (e) {
   e.preventDefault()
   if (!email.value || email.value === '' || !validateEmail(email.value)) {
     error.innerText = 'Veuillez insérer une adresse mail valide'
     return
   }
-  secondScreenContainer.style.display = 'none'
-  success.style.display = 'block'
   console.log('send photo and email to backend')
-  setTimeout(() => {
-    window.location.reload()
-  }, 5000)
+  data = canvasToBase64()
+  const myRequest = new Request(
+    '/photo/',
+    {
+      method: 'POST', body: JSON.stringify({ "email": email.value, "data": data })
+    },
+  )
+  fetch(myRequest).then(response => {
+    secondScreenContainer.style.display = 'none'
+    success.style.display = 'block'
+    setTimeout(() => {
+      window.location.reload()
+    }, 5000)
+  })
 })
 
 function canvasToBase64() {
-  return canvas.toDataURL('image/png')
+  return canvas.toDataURL('image/jpeg')
 }
 
 function validateEmail(email) {
