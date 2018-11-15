@@ -1,0 +1,34 @@
+version: '3'
+
+services:
+    django:
+        build: .
+        environment:
+        - DJANGO_SETTINGS_MODULE=photobooth.settings.production
+        volumes:
+        - media:/srv/app/media
+        ports:
+        - 8005:8000
+        restart: unless-stopped
+    celery:
+        build: .
+        command: ["/srv/app/deploy/run-celery.sh"]
+        environment:
+        - DJANGO_SETTINGS_MODULE=photobooth.settings.production
+        volumes:
+        - media:/srv/app/media
+        restart: unless-stopped
+    rabbitmq:
+        image: rabbitmq
+        restart: unless-stopped
+    mysql:
+        image: mysql
+        environment:
+            - MYSQL_USER=photobooth_user
+            - MYSQL_PASSWORD=password
+            - MYSQL_DATABASE=photobooth
+            - MYSQL_ROOT_PASSWORD=secret
+        restart: unless-stopped
+
+volumes:
+  media: {}

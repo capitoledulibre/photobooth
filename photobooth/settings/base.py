@@ -13,7 +13,8 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))))
 
 
 # Quick-start development settings - unsuitable for production
@@ -23,7 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = 'f=xi+co5dca-6)k(3*xup0v-1&*w$yith$squ)1z&o12t&v!7m'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = []
 
@@ -126,11 +127,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 FROM_EMAIL = 'noreply@capitoledulibre.org'
 
+PHOTOBOOTH_USE_QR_CODE = True
+PHOTOBOOTH_BASE_URL = 'http://example.com'
+PHOTOBOOTH_RSYNC_COMMAND = 'echo rsync'
 
-USE_QR_CODE = True
-
-PHOTOBOOTH_BASE_URL = 'https://capitoledulibre.org/photobooth/'
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 25
+EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'

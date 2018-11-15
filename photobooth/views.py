@@ -2,6 +2,7 @@ import io
 import json
 import binascii
 import uuid
+import urllib.parse
 
 
 from django.core.files.base import ContentFile
@@ -15,6 +16,7 @@ from django.views.decorators.csrf import csrf_exempt
 import qrcode
 
 from photobooth.models import Photo
+import photobooth.tasks
 
 
 def home(request):
@@ -43,6 +45,8 @@ def photo(request):
         id=photo_uuid,
         photo=photo_file,
     )
+    if settings.PHOTOBOOTH_USE_QR_CODE:
+        photobooth.tasks.rsync_photo.delay()
     return HttpResponse(
         str(photo.id),
         status=200,
@@ -59,7 +63,10 @@ def qrcode_link(request, photo_uuid):
         box_size=10,
         border=4,
     )
-    qr.add_data('URL: %s/%s.jpeg' % (settings.PHOTOBOOTH_BASE_URL, photo.id))
+    qr.add_data('URL: %s' % urllib.parse.urljoin(
+        settings.PHOTOBOOTH_BASE_URL,
+        '%s.jpeg' % (photo.id,)
+    ))
     img = qr.make_image()
 
     buffer = io.BytesIO()

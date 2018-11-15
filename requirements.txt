@@ -4,3 +4,5 @@ flake8
 autopep8
 Pillow
 qrcode
+celery
+mysqlclient
