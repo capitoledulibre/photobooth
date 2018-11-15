@@ -127,6 +127,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 FROM_EMAIL = 'noreply@capitoledulibre.org'
 
 
+USE_QR_CODE = True
+
+PHOTOBOOTH_BASE_URL = 'https://capitoledulibre.org/photobooth/'
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'localhost'
 EMAIL_PORT = 25
