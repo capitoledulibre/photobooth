@@ -53,12 +53,20 @@ function snapAndSendImage() {
         if (use_qr_code) {
           form.style.display = 'none'
           qrcode.src = '/qrcode/' + currentPhotoUUID + '/'
+          document.getElementById('snapWindow').addEventListener('click', function() {
+            window.location.reload()
+          })
           setInterval(() => {
             if (iDebounceEnd === 0) {
               window.location.reload()
             } else {
               const secText = iDebounceEnd <= 1 ? 'seconde' : 'secondes'
-              debounceEnd.innerHTML = "Cette page s'auto-détruira dans " + iDebounceEnd + ' ' + secText
+              debounceEnd.innerHTML =
+                "Cette page s'auto-détruira dans " +
+                iDebounceEnd +
+                ' ' +
+                secText +
+                ".<br />Vous pouvez également appuyer sur le buzzer si vous avez fini. <br />Merci d'avoir utilisé ce photobooth :)"
               iDebounceEnd = iDebounceEnd - 1
             }
           }, 1000)
