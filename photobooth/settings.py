@@ -126,10 +126,11 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 FROM_EMAIL = 'noreply@capitoledulibre.org'
 
+CELERY_TASK_ALWAYS_EAGER = True
 
-USE_QR_CODE = True
-
+PHOTOBOOTH_USE_QR_CODE = True
 PHOTOBOOTH_BASE_URL = 'https://capitoledulibre.org/photobooth/'
+PHOTOBOOTH_RSYNC_COMMAND = 'rsync -avz ./media/ /tmp/www/'
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'localhost'

@@ -15,6 +15,7 @@ from django.views.decorators.csrf import csrf_exempt
 import qrcode
 
 from photobooth.models import Photo
+import photobooth.tasks
 
 
 def home(request):
@@ -43,6 +44,8 @@ def photo(request):
         id=photo_uuid,
         photo=photo_file,
     )
+    if settings.PHOTOBOOTH_USE_QR_CODE:
+        photobooth.tasks.rsync_photo.delay()
     return HttpResponse(
         str(photo.id),
         status=200,
