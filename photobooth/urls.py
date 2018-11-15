@@ -26,6 +26,7 @@ import photobooth.views
 urlpatterns = [
     url(r'^$', photobooth.views.home, name='home'),
     url(r'^photo/$', photobooth.views.photo, name='photo'),
+    url(r'^email/$', photobooth.views.email, name='email'),
 
     url(r'^static/(?P<path>.*)$', views_static.serve,
         {'document_root': settings.STATIC_ROOT}),

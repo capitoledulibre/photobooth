@@ -9,6 +9,7 @@ let secondScreenContainer = document.getElementById('secondScreenContainer')
 let interval = null
 let image = null
 let i = 5
+let currentPhotoUUID = null
 
 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
   navigator.mediaDevices
@@ -29,13 +30,25 @@ document.getElementById('snap').addEventListener('click', function () {
   debounce.innerHTML = 'Pensez à sourir :)'
   interval = setInterval(() => {
     if (i === 0) {
-      video.style.display = 'none'
-      secondScreenContainer.style.display = 'block'
       clearInterval(interval)
       debounce.innerText = ''
       context.drawImage(video, 0, 0, 1049, 540)
       image = canvasToBase64()
       i = 5
+      const myRequest = new Request(
+        '/photo/',
+        {
+          method: 'POST', body: image
+        },
+      )
+      fetch(myRequest).then(response => {
+        currentPhotoUUID = response.text().then(v => {
+          currentPhotoUUID = v
+          console.log('Photo is', currentPhotoUUID)
+          video.style.display = 'none'
+          secondScreenContainer.style.display = 'block'
+        })
+      })
     } else {
       debounce.innerText = i + '...'
       i = i - 1
@@ -54,11 +67,10 @@ document.getElementById('submit').addEventListener('click', function (e) {
     return
   }
   console.log('send photo and email to backend')
-  data = canvasToBase64()
   const myRequest = new Request(
-    '/photo/',
+    '/email/',
     {
-      method: 'POST', body: JSON.stringify({ "email": email.value, "data": data })
+      method: 'POST', body: JSON.stringify({ "email": email.value, "uuid": currentPhotoUUID })
     },
   )
   fetch(myRequest).then(response => {
