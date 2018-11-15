@@ -11,8 +11,10 @@
 </head>
 
 <body id="snapWindow">
-  <video id="video" width="1920" height="1200" autoplay></video>
-  <p id="debounce" class="snapAndDebounce">Cliquez pour prendre une photo</p>
+  <video id="video" autoplay></video>
+  <p id="debounce" class="snapAndDebounce">Appuyez pour prendre une photo</p>
+  <p id="success" class="snapAndDebounce">Vous devriez recevoir un mail avec votre photo dans quelques instants. <br />
+    Merci d'avoir utilisé ce photobooth :)</p>
   <div id="secondScreenContainer">
     <div id="title" class="mx-auto">
       <h2>Capitole du libre - Photobooth</h2>
@@ -35,9 +37,17 @@
       </form>
       <img id='qrcode' src="" alt="QR Code en cours de chargement..." class="center"
         width="300" height="300" />
+      <h2 id="debounceEnd"></h2>
     </div>
   </div>
 
+  <script>
+    {% if settings.USE_QR_CODE %}
+    let use_qr_code = true;
+    {% else %}
+    let use_qr_code = false;
+    {% endif %}
+  </script>
   <script src="/static/js/bootstrap.bundle.min.js"></script>
   <script src="/static/js/index.js" />
   </script>

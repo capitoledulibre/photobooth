@@ -33,6 +33,10 @@ h3 {
 
 #video {
   position: absolute;
+  right: 0;
+  bottom: 0;
+  min-width: 100%;
+  min-height: 100%;
 }
 
 #debounce {
@@ -59,11 +63,11 @@ h3 {
   display: none;
 }
 
-#submit {
-  margin-top: 1rem;
-}
-
 .center {
   display: block;
   margin: 0 auto;
+}
+
+#debounceEnd {
+  text-align: center;
 }
