@@ -10,21 +10,18 @@
   <title>Photobooth Capitole du Libre</title>
 </head>
 
-<body>
+<body id="snapWindow">
   <video id="video" width="1920" height="1200" autoplay></video>
-  <button id="snap" class="btn btn-danger btn-lg snapAndDebounce">Prendre une photo</button>
-  <p id="debounce" class="snapAndDebounce"></p>
-  <p id="success" class="snapAndDebounce">Vous devriez recevoir un mail avec votre photo dans quelques instants. <br />
-    Merci d'avoir utilisé ce photobooth :)</p>
+  <p id="debounce" class="snapAndDebounce">Cliquez pour prendre une photo</p>
   <div id="secondScreenContainer">
     <div id="title" class="mx-auto">
       <h2>Capitole du libre - Photobooth</h2>
     </div>
     <div class="mx-auto videos">
-      <canvas id="canvas" class="border" width="1049" height="540"></canvas>
+      <canvas id="canvas" class="border" width="720" height="540"></canvas>
     </div>
-    <div id="form" class="mx-auto">
-      <form autocomplete="off">
+    <div id="formContainer" class="mx-auto">
+      <form autocomplete="off" id="form">
         <div class="form-group">
           <label for="exampleInputEmail1">Adresse mail</label>
           <input autocomplete="off" type="email" class="form-control" id="inputEmail" aria-describedby="emailHelp"
@@ -36,6 +33,8 @@
         <button id="cancel" class="btn btn-light">Retour</button>
         <button id="submit" class="btn btn-primary">Envoyer</button>
       </form>
+      <img id='qrcode' src="" alt="QR Code en cours de chargement..." class="center"
+        width="300" height="300" />
     </div>
   </div>
 

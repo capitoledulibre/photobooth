@@ -7,7 +7,7 @@ h3 {
 }
 
 .videos {
-  width: 1050px;
+  width: 720px;
   margin-top: 3rem;
 }
 
@@ -20,7 +20,7 @@ h3 {
   width: 30rem;
 }
 
-#form {
+#formContainer {
   width: 50rem;
 }
 
@@ -37,7 +37,7 @@ h3 {
 
 #debounce {
   background-color: rgba(250, 250, 250, 0.5);
-  width: 40rem;
+  width: 60rem;
   font-size: 400%;
   text-align: center;
 }
@@ -57,4 +57,13 @@ h3 {
 
 #secondScreenContainer {
   display: none;
+}
+
+#submit {
+  margin-top: 1rem;
+}
+
+.center {
+  display: block;
+  margin: 0 auto;
 }
