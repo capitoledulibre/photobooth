@@ -45,6 +45,9 @@ document.getElementById('snap').addEventListener('click', function () {
         currentPhotoUUID = response.text().then(v => {
           currentPhotoUUID = v
           console.log('Photo is', currentPhotoUUID)
+          if (use_qr_code) {
+            window.location = "/qrcode/" + currentPhotoUUID + "/"
+          }
           video.style.display = 'none'
           secondScreenContainer.style.display = 'block'
         })

@@ -26,6 +26,8 @@ import photobooth.views
 urlpatterns = [
     url(r'^$', photobooth.views.home, name='home'),
     url(r'^photo/$', photobooth.views.photo, name='photo'),
+    url(r'^qrcode/(?P<photo_uuid>[0-9A-Za-z_-]+)/$',
+        photobooth.views.qrcode_link, name='qrcode'),
     url(r'^email/$', photobooth.views.email, name='email'),
 
     url(r'^static/(?P<path>.*)$', views_static.serve,

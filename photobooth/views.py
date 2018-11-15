@@ -1,3 +1,4 @@
+import io
 import json
 import binascii
 import uuid
@@ -11,13 +12,13 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
-
+import qrcode
 
 from photobooth.models import Photo
 
 
 def home(request):
-    return render(request, 'photobooth/index.html')
+    return render(request, 'photobooth/index.html', {'settings': settings})
 
 
 @csrf_exempt
@@ -46,6 +47,29 @@ def photo(request):
         str(photo.id),
         status=200,
         content_type='text/plain',
+    )
+
+
+def qrcode_link(request, photo_uuid):
+    photo = get_object_or_404(Photo, id=photo_uuid)
+
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data('URL: %s/%s.jpeg' % (settings.PHOTOBOOTH_BASE_URL, photo.id))
+    img = qr.make_image()
+
+    buffer = io.BytesIO()
+    img.save(buffer)
+    buffer.seek(0)
+
+    return HttpResponse(
+        buffer,
+        status=200,
+        content_type='image/png',
     )
 
 

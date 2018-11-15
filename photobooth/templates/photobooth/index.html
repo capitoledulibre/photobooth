@@ -39,6 +39,13 @@
     </div>
   </div>
 
+  <script>
+    {% if settings.USE_QR_CODE %}
+    let use_qr_code = true;
+    {% else %}
+    let use_qr_code = false;
+    {% endif %}
+  </script>
   <script src="/static/js/bootstrap.bundle.min.js"></script>
   <script src="/static/js/index.js" />
   </script>
