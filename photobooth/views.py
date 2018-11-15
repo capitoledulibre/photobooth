@@ -2,6 +2,7 @@ import io
 import json
 import binascii
 import uuid
+import urllib.parse
 
 
 from django.core.files.base import ContentFile
@@ -62,7 +63,10 @@ def qrcode_link(request, photo_uuid):
         box_size=10,
         border=4,
     )
-    qr.add_data('URL: %s/%s.jpeg' % (settings.PHOTOBOOTH_BASE_URL, photo.id))
+    qr.add_data('URL: %s' % urllib.parse.urljoin(
+        settings.PHOTOBOOTH_BASE_URL,
+        '%s.jpeg' % (photo.id,)
+    ))
     img = qr.make_image()
 
     buffer = io.BytesIO()
