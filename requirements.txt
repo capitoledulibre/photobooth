@@ -5,3 +5,4 @@ autopep8
 Pillow
 qrcode
 celery
+mysqlclient
