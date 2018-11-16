@@ -17,6 +17,7 @@ services:
         - DJANGO_SETTINGS_MODULE=photobooth.settings.production
         volumes:
         - media:/srv/app/media
+        - ./ssh:/home/daemon/.ssh
         restart: unless-stopped
     rabbitmq:
         image: rabbitmq

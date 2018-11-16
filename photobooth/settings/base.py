@@ -128,7 +128,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 FROM_EMAIL = 'noreply@capitoledulibre.org'
 
 PHOTOBOOTH_USE_QR_CODE = True
-PHOTOBOOTH_BASE_URL = 'http://example.com'
+PHOTOBOOTH_BASE_URL = 'http://photo.capitoledulibre.ninja/'
 PHOTOBOOTH_RSYNC_COMMAND = 'echo rsync'
 
 EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'

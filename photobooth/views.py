@@ -65,7 +65,7 @@ def qrcode_link(request, photo_uuid):
     )
     qr.add_data('URL: %s' % urllib.parse.urljoin(
         settings.PHOTOBOOTH_BASE_URL,
-        '%s.jpeg' % (photo.id,)
+        '%s.jpg' % (photo.id,)
     ))
     img = qr.make_image()
 
