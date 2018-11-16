@@ -7,7 +7,7 @@ h3 {
 }
 
 .videos {
-  width: 720px;
+  width: 750px;
   margin-top: 3rem;
 }
 
@@ -37,6 +37,8 @@ h3 {
   bottom: 0;
   min-width: 100%;
   min-height: 100%;
+  max-width: 100%;
+  max-height: 100%;
 }
 
 #debounce {

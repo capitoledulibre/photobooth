@@ -11,6 +11,7 @@
 </head>
 
 <body id="snapWindow">
+  <canvas style="display: none" id="Bigcanvas" class="border"></canvas>
   <video id="video" autoplay></video>
   <p id="debounce" class="snapAndDebounce">Appuyez pour prendre une photo</p>
   <p id="success" class="snapAndDebounce">Vous devriez recevoir un mail avec votre photo dans quelques instants. <br />
@@ -20,7 +21,7 @@
       <h2>Capitole du libre - Photobooth</h2>
     </div>
     <div class="mx-auto videos">
-      <canvas id="canvas" class="border" width="720" height="540"></canvas>
+      <canvas id="canvas" class="border" width="750"></canvas>
     </div>
     <div id="formContainer" class="mx-auto">
       <form autocomplete="off" id="form">

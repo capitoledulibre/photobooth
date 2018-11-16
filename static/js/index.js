@@ -1,6 +1,8 @@
 let video = document.getElementById('video')
 let canvas = document.getElementById('canvas')
 let context = canvas.getContext('2d')
+let Bigcanvas = document.getElementById('Bigcanvas')
+let Bigcontext = Bigcanvas.getContext('2d')
 let debounce = document.getElementById('debounce')
 let secondScreenContainer = document.getElementById('secondScreenContainer')
 let qrcodeImg = document.getElementById('qrcode')
@@ -15,11 +17,22 @@ let image = null
 let i = 5
 let iDebounceEnd = 45
 let currentPhotoUUID = null
+const captureWidth = 1920 * 2
+const catpureHeight = 1080 * 2
+let cameraAspectRation = 1
+
+Bigcanvas.width = captureWidth
+Bigcanvas.height = catpureHeight
 
 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
   navigator.mediaDevices
-    .getUserMedia({ video: true })
+    .getUserMedia({ video: { width: captureWidth, height: catpureHeight } })
     .then(stream => {
+      tmp = stream.getVideoTracks()
+      settings = tmp[0].getSettings()
+      console.log("Camera is ", tmp[0].label)
+      console.log("Get video with ", settings.width, "x", settings.height, " fps=", settings.frameRate, " aspect=", settings.aspectRatio);
+      cameraAspectRation = settings.aspectRatio
       video.srcObject = stream
       video.play()
     })
@@ -42,7 +55,9 @@ function snapAndSendImage() {
       secondScreenContainer.style.display = 'block'
       clearInterval(interval)
       debounce.innerText = ''
-      context.drawImage(video, 0, 0, 720, 540)
+      canvas.height = canvas.width / cameraAspectRation
+      context.drawImage(video, 0, 0, canvas.width, canvas.height)
+      Bigcontext.drawImage(video, 0, 0, captureWidth, catpureHeight)
       i = 5
       const myRequest = new Request('/photo/', {
         method: 'POST',
