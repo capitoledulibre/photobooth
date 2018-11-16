@@ -63,12 +63,12 @@ function snapAndSendImage() {
         method: 'POST',
         body: canvasToBase64()
       })
-      fetch(myRequest).then(async function(response) {
+      fetch(myRequest).then(async function (response) {
         currentPhotoUUID = await response.text()
         if (use_qr_code) {
           form.style.display = 'none'
           qrcode.src = '/qrcode/' + currentPhotoUUID + '/'
-          document.getElementById('snapWindow').addEventListener('click', function() {
+          document.getElementById('snapWindow').addEventListener('click', function () {
             window.location.reload()
           })
           setInterval(() => {
@@ -98,11 +98,11 @@ function snapAndSendImage() {
 
 // if settings.USE_QR_CODE is False
 
-email.addEventListener('input', function() {
+email.addEventListener('input', function () {
   error.innerText = ''
 })
 
-document.getElementById('submit').addEventListener('click', function(e) {
+document.getElementById('submit').addEventListener('click', function (e) {
   e.preventDefault()
   if (!email.value || email.value === '' || !validateEmail(email.value)) {
     error.innerText = 'Veuillez insérer une adresse mail valide'
@@ -122,7 +122,7 @@ document.getElementById('submit').addEventListener('click', function(e) {
 })
 
 function canvasToBase64() {
-  return canvas.toDataURL('image/jpeg')
+  return Bigcanvas.toDataURL('image/jpeg')
 }
 
 function validateEmail(email) {
