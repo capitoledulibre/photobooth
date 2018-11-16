@@ -124,9 +124,9 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+DATA_UPLOAD_MAX_MEMORY_SIZE = 1024*1024*20
 
 FROM_EMAIL = 'noreply@capitoledulibre.org'
-
 PHOTOBOOTH_USE_QR_CODE = True
 PHOTOBOOTH_BASE_URL = 'http://photo.capitoledulibre.ninja/'
 PHOTOBOOTH_RSYNC_COMMAND = 'echo rsync'

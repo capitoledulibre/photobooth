@@ -122,7 +122,7 @@ document.getElementById('submit').addEventListener('click', function (e) {
 })
 
 function canvasToBase64() {
-  return Bigcanvas.toDataURL('image/jpeg')
+  return Bigcanvas.toDataURL('image/jpeg', 0.98)
 }
 
 function validateEmail(email) {
