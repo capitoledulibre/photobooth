@@ -13,12 +13,12 @@
 <body id="snapWindow">
   <canvas style="display: none" id="Bigcanvas" class="border"></canvas>
   <video id="video" autoplay></video>
-  <p id="debounce" class="snapAndDebounce">Appuyez pour prendre une photo</p>
+  <p id="debounce" class="snapAndDebounce">Appuyez le buzzer pour prendre une photo</p>
   <p id="success" class="snapAndDebounce">Vous devriez recevoir un mail avec votre photo dans quelques instants. <br />
     Merci d'avoir utilisé ce photobooth :)</p>
   <div id="secondScreenContainer">
     <div id="title" class="mx-auto">
-      <h2>Capitole du libre - Photobooth</h2>
+      <img src="/static/img/logo-cdl.png" />
     </div>
     <div class="mx-auto videos">
       <canvas id="canvas" class="border" width="750"></canvas>
@@ -36,8 +36,9 @@
         <button id="cancel" class="btn btn-light">Retour</button>
         <button id="submit" class="btn btn-primary">Envoyer</button>
       </form>
+      <h2 id="qrcodeText">Scanner le QR code pour Télécharger votre photo.</h2>
       <img id='qrcode' src="" alt="QR Code en cours de chargement..." class="center" width="300" height="300" />
-      <h2 id="debounceEnd"></h2>
+      <h4 id="debounceEnd"></h4>
     </div>
   </div>
 

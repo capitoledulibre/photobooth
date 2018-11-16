@@ -1,6 +1,7 @@
 body {
   background-color: white;
   color: black;
+  text-align: center;
 }
 h3 {
   font-size: 200%;
@@ -8,7 +9,7 @@ h3 {
 
 .videos {
   width: 750px;
-  margin-top: 3rem;
+  margin-top: 2.5rem;
 }
 
 .border {
@@ -17,6 +18,7 @@ h3 {
 }
 
 #title {
+  margin-top: 0.5rem;
   width: 30rem;
 }
 
