@@ -48,7 +48,7 @@ document.getElementById('snapWindow').addEventListener('click', snapAndSendImage
 
 function snapAndSendImage() {
   document.getElementById('snapWindow').removeEventListener('click', snapAndSendImage)
-  debounce.innerHTML = 'Pensez à sourir :)'
+  debounce.innerHTML = 'Pensez à sourire :)'
   interval = setInterval(() => {
     if (i === 0) {
       video.style.display = 'none'
