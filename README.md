@@ -2,6 +2,16 @@
 
 Capitole du Libre Photobooth
 
+Simple Django Web application for a photobooth. Main features are:
+- simple du deploy with Docker
+- local or remote web application
+- push pictures on a remote server (rsync) and display QRcode to download picture
+
+Requirements:
+- a webcam for taking pictures
+- a computer with a web browser
+- a mouse (a click on mouse will take pictures)
+
 Run for development with:
 
 ```
