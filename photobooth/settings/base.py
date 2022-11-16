@@ -128,7 +128,7 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = 1024*1024*20
 
 FROM_EMAIL = 'noreply@capitoledulibre.org'
 PHOTOBOOTH_USE_QR_CODE = True
-PHOTOBOOTH_BASE_URL = 'http://photo.capitoledulibre.ninja/'
+PHOTOBOOTH_BASE_URL = 'https://photo.capitoledulibre.org/'
 PHOTOBOOTH_RSYNC_COMMAND = 'echo rsync'
 
 EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'

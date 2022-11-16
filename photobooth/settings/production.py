@@ -19,5 +19,5 @@ DATABASES = {
 
 CELERY_BROKER_URL = 'amqp://rabbitmq'
 
-PHOTOBOOTH_BASE_URL = 'http://photo.capitoledulibre.ninja/'
-PHOTOBOOTH_RSYNC_COMMAND = 'rsync -avz -e "ssh -i /home/daemon/.ssh/id_rsa -oStrictHostKeyChecking=accept-new" media/ photobooth@photo.capitoledulibre.ninja:/srv/photo/'
+PHOTOBOOTH_BASE_URL = 'https://photo.capitoledulibre.org/'
+PHOTOBOOTH_RSYNC_COMMAND = 'rsync -avz -e "ssh -i /home/daemon/.ssh/id_rsa -oStrictHostKeyChecking=accept-new" media/ photobooth@photo.capitoledulibre.org:/srv/photo/'
