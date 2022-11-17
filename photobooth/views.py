@@ -3,7 +3,6 @@ import json
 import binascii
 import uuid
 import urllib.parse
-import datetime
 
 from exif import Image, DATETIME_STR_FORMAT, GpsAltitudeRef
 
@@ -47,7 +46,7 @@ def photo(request):
     with open("media/"+ str(photo_uuid) + ".jpg", 'rb') as image_file:
         my_image = Image(image_file)
 
-        my_image.datetime_original = datetime.datetime.now().strftime(DATETIME_STR_FORMAT)
+        my_image.datetime_original = timezone.localtime().strftime(DATETIME_STR_FORMAT)
         my_image.gps_latitude = (43.0, 36.0, 7.848)
         my_image.gps_latitude_ref = "N"
         my_image.gps_longitude = (1.0, 27.0, 16.83)
