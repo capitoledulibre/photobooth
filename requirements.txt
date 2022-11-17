@@ -2,7 +2,7 @@ Django
 pylint
 flake8
 autopep8
-Pillow
+exif
 qrcode
 celery
 mysqlclient
