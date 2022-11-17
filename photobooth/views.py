@@ -3,14 +3,16 @@ import json
 import binascii
 import uuid
 import urllib.parse
+import datetime
 
+from exif import Image, DATETIME_STR_FORMAT, GpsAltitudeRef
 
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils import timezone
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import qrcode
@@ -41,6 +43,21 @@ def photo(request):
     photo_file = default_storage.save(
         "%s.jpg" % photo_uuid, ContentFile(photo_data)
     )
+
+    with open("media/"+ str(photo_uuid) + ".jpg", 'rb') as image_file:
+        my_image = Image(image_file)
+
+        my_image.datetime_original = datetime.datetime.now().strftime(DATETIME_STR_FORMAT)
+        my_image.gps_latitude = (43.0, 36.0, 7.848)
+        my_image.gps_latitude_ref = "N"
+        my_image.gps_longitude = (1.0, 27.0, 16.83)
+        my_image.gps_longitude_ref = "E"
+        my_image.gps_altitude = 155
+        my_image.gps_altitude_ref = GpsAltitudeRef.ABOVE_SEA_LEVEL
+
+        with open("media/"+ str(photo_uuid) + ".jpg", 'wb') as new_my_image:
+            new_my_image.write(my_image.get_file())
+
     photo = Photo.objects.create(
         id=photo_uuid,
         photo=photo_file,
