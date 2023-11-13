@@ -32,5 +32,5 @@ To run with Docker:
 * Run:
 
 ```
-docker-compose up -d --build
+docker compose up -d --build
 ```
