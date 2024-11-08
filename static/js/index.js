@@ -18,15 +18,15 @@ let i = 5
 let iDebounceEnd = 45
 let currentPhotoUUID = null
 const captureWidth = 1920 * 2
-const catpureHeight = 1080 * 2
+const captureHeight = 1080 * 2
 let cameraAspectRation = 1
 
 Bigcanvas.width = captureWidth
-Bigcanvas.height = catpureHeight
+Bigcanvas.height = captureHeight
 
 if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
   navigator.mediaDevices
-    .getUserMedia({ video: { width: captureWidth, height: catpureHeight } })
+    .getUserMedia({ video: { width: captureWidth, height: captureHeight } })
     .then(stream => {
       tmp = stream.getVideoTracks()
       settings = tmp[0].getSettings()
@@ -57,7 +57,7 @@ function snapAndSendImage() {
       debounce.innerText = ''
       canvas.height = canvas.width / cameraAspectRation
       context.drawImage(video, 0, 0, canvas.width, canvas.height)
-      Bigcontext.drawImage(video, 0, 0, captureWidth, catpureHeight)
+      Bigcontext.drawImage(video, 0, 0, captureWidth, captureHeight)
       i = 5
       const myRequest = new Request('/photo/', {
         method: 'POST',

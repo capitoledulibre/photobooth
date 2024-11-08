@@ -1,0 +1,40 @@
+[tool.poetry]
+name = "photobooth"
+version = "1.0.0"
+description = "Capitole du Libre Photobooth."
+authors = ["Clement Cavanier <clement.cavanier@bleemeo.com>", "Lionel Porcheron <lionel.porcheron@bleemeo.com>", "Pierre Fersing <pierre.fersing@bleemeo.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "~3.12"
+Django = "*"
+exif="*"
+Pillow ="*"
+qrcode="*"
+celery="*"
+mysqlclient="*"
+
+[tool.poetry.group.dev.dependencies]
+tox = "*"
+flake8 = '*'
+autopep8="*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+exclude = [
+    ".tox/*",
+    ".git/*",
+    "photobooth/settings/*",
+    "*/js/bootstrap.bundle.min.js",
+    "*/css/bootstrap.min.css"
+]
+
+# Same as Black.
+line-length = 88
+indent-width = 4
+
+# Assume Python 3.12
+target-version = "py312"

@@ -1,4 +1,4 @@
-# photobooth
+# Photobooth
 
 Capitole du Libre Photobooth
 
@@ -12,11 +12,29 @@ Requirements:
 - a computer with a web browser
 - a mouse (a click on mouse will take pictures)
 
-Run for development with:
+We recommend pipx usage on Ubuntu/Debian:
 
 ```
-mkvirtualenv -p /usr/bin/python3 photobooth
-pip install -r requirements.txt
+sudo apt install pipx
+pipx ensurepath
+echo "Restart your shell if you just installed pipx
+pipx install poetry pre-commit
+pre-commit install
+```
+
+On MacOS:
+```
+brew install python@3.12 pipx
+pipx ensurepath
+echo "Restart your shell if you just installed pipx"
+pipx install poetry pre-commit
+pre-commit install
+poetry env use python3.12
+```
+
+```
+poetry install --no-root --sync
+poetry shell
 
 python manage.py migrate
 python manage.py runserver 8005
@@ -33,4 +51,15 @@ To run with Docker:
 
 ```
 docker compose up -d --build
+```
+
+
+## Upgrade packages on MacOS::
+
+```
+poetry update
+poetry self add poetry-plugin-export
+poetry export --without-hashes --only main -f requirements.txt --output requirements.txt
+
+pre-commit autoupdate
 ```

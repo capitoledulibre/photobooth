@@ -21,29 +21,26 @@ import photobooth.tasks
 
 
 def home(request):
-    return render(request, 'photobooth/index.html', {'settings': settings})
+    return render(request, "photobooth/index.html", {"settings": settings})
 
 
 @csrf_exempt
 def photo(request):
-    body = request.body.decode('utf-8')
-    if not body.startswith('data:image/jpeg;base64'):
-        print('Body data starts with: %r' % body[:20])
+    body = request.body.decode("utf-8")
+    if not body.startswith("data:image/jpeg;base64"):
+        print("Body data starts with: %r" % body[:20])
         return HttpResponse(
-            'Bad data-uri format',
+            "Bad data-uri format",
             status=400,
-            content_type='text/plain',
+            content_type="text/plain",
         )
 
-    photo_data = binascii.a2b_base64(
-        body[len('data:image/jpeg;base64'):]
-    )
+    length = len("data:image/jpeg;base64")
+    photo_data = binascii.a2b_base64(body[length:])
     photo_uuid = uuid.uuid4()
-    photo_file = default_storage.save(
-        "%s.jpg" % photo_uuid, ContentFile(photo_data)
-    )
+    photo_file = default_storage.save("%s.jpg" % photo_uuid, ContentFile(photo_data))
 
-    with open("media/"+ str(photo_uuid) + ".jpg", 'rb') as image_file:
+    with open("media/" + str(photo_uuid) + ".jpg", "rb") as image_file:
         my_image = Image(image_file)
 
         my_image.datetime_original = timezone.localtime().strftime(DATETIME_STR_FORMAT)
@@ -54,7 +51,7 @@ def photo(request):
         my_image.gps_altitude = 155
         my_image.gps_altitude_ref = GpsAltitudeRef.ABOVE_SEA_LEVEL
 
-        with open("media/"+ str(photo_uuid) + ".jpg", 'wb') as new_my_image:
+        with open("media/" + str(photo_uuid) + ".jpg", "wb") as new_my_image:
             new_my_image.write(my_image.get_file())
 
     photo = Photo.objects.create(
@@ -66,7 +63,7 @@ def photo(request):
     return HttpResponse(
         str(photo.id),
         status=200,
-        content_type='text/plain',
+        content_type="text/plain",
     )
 
 
@@ -79,10 +76,10 @@ def qrcode_link(request, photo_uuid):
         box_size=10,
         border=4,
     )
-    qr.add_data('URL: %s' % urllib.parse.urljoin(
-        settings.PHOTOBOOTH_BASE_URL,
-        '%s.jpg' % (photo.id,)
-    ))
+    qr.add_data(
+        "URL: %s"
+        % urllib.parse.urljoin(settings.PHOTOBOOTH_BASE_URL, "%s.jpg" % (photo.id,))
+    )
     img = qr.make_image()
 
     buffer = io.BytesIO()
@@ -92,7 +89,7 @@ def qrcode_link(request, photo_uuid):
     return HttpResponse(
         buffer,
         status=200,
-        content_type='image/png',
+        content_type="image/png",
     )
 
 
@@ -100,8 +97,8 @@ def qrcode_link(request, photo_uuid):
 def email(request):
     body = json.loads(request.body)
 
-    photo = get_object_or_404(Photo, id=body['uuid'])
-    photo.email = body['email']
+    photo = get_object_or_404(Photo, id=body["uuid"])
+    photo.email = body["email"]
     photo.save()
 
     msg = EmailMessage(
@@ -112,14 +109,14 @@ def email(request):
     )
     with photo.photo.open() as fileobj:
         msg_img = fileobj.read()
-        msg.attach('capitole-du-libre.jpeg', msg_img, 'image/jpeg')
+        msg.attach("capitole-du-libre.jpeg", msg_img, "image/jpeg")
     msg.send()
 
     photo.email_sent_at = timezone.now()
     photo.save()
 
     return HttpResponse(
-        'ok',
+        "ok",
         status=200,
-        content_type='text/plain',
+        content_type="text/plain",
     )

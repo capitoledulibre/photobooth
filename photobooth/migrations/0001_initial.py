@@ -6,21 +6,27 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Photo',
+            name="Photo",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('email', models.EmailField(max_length=254)),
-                ('photo', models.ImageField(upload_to='')),
-                ('created_at', models.DateTimeField(default=django.utils.timezone.now)),
-                ('email_sent_at', models.DateTimeField(null=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("email", models.EmailField(max_length=254)),
+                ("photo", models.ImageField(upload_to="")),
+                ("created_at", models.DateTimeField(default=django.utils.timezone.now)),
+                ("email_sent_at", models.DateTimeField(null=True)),
             ],
         ),
     ]

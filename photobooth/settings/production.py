@@ -1,5 +1,4 @@
 # flake8: noqa
-# pylint: disable-all
 from photobooth.settings.base import *
 
 DEBUG = False

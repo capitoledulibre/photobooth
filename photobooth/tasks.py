@@ -9,5 +9,5 @@ import subprocess
 @shared_task
 def rsync_photo():
     subprocess.check_call(
-        ['flock', '/tmp/photobooth.lock', '-c', settings.PHOTOBOOTH_RSYNC_COMMAND]
+        ["flock", "/tmp/photobooth.lock", "-c", settings.PHOTOBOOTH_RSYNC_COMMAND]
     )

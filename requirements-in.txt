@@ -1,9 +1,0 @@
-Django
-pylint
-flake8
-autopep8
-exif
-Pillow
-qrcode
-celery
-mysqlclient
