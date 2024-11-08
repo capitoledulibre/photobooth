@@ -4,8 +4,6 @@ import binascii
 import uuid
 import urllib.parse
 
-from exif import Image, DATETIME_STR_FORMAT, GpsAltitudeRef
-
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.conf import settings
@@ -16,6 +14,7 @@ from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
 import qrcode
 
+from photobooth.common import add_exif_data, duplicate_image_with_background
 from photobooth.models import Photo
 import photobooth.tasks
 
@@ -35,28 +34,20 @@ def photo(request):
             content_type="text/plain",
         )
 
+    now = timezone.now().strftime("%Y-%m-%d-%H:%M:%S.%f")
+
     length = len("data:image/jpeg;base64")
     photo_data = binascii.a2b_base64(body[length:])
     photo_uuid = uuid.uuid4()
-    photo_file = default_storage.save("%s.jpg" % photo_uuid, ContentFile(photo_data))
+    photo_file = default_storage.save(f"{now}{photo_uuid}.jpg", ContentFile(photo_data))
 
-    with open("media/" + str(photo_uuid) + ".jpg", "rb") as image_file:
-        my_image = Image(image_file)
-
-        my_image.datetime_original = timezone.localtime().strftime(DATETIME_STR_FORMAT)
-        my_image.gps_latitude = (43.0, 36.0, 7.848)
-        my_image.gps_latitude_ref = "N"
-        my_image.gps_longitude = (1.0, 27.0, 16.83)
-        my_image.gps_longitude_ref = "E"
-        my_image.gps_altitude = 155
-        my_image.gps_altitude_ref = GpsAltitudeRef.ABOVE_SEA_LEVEL
-
-        with open("media/" + str(photo_uuid) + ".jpg", "wb") as new_my_image:
-            new_my_image.write(my_image.get_file())
+    add_exif_data(photo_uuid, now)
+    photo_with_bg = duplicate_image_with_background(photo_uuid, now)
 
     photo = Photo.objects.create(
         id=photo_uuid,
         photo=photo_file,
+        photo_with_bg=photo_with_bg,
     )
     if settings.PHOTOBOOTH_USE_QR_CODE:
         photobooth.tasks.rsync_photo.delay()

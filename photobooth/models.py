@@ -9,5 +9,6 @@ class Photo(models.Model):
 
     email = models.EmailField()
     photo = models.ImageField()
+    photo_with_bg = models.ImageField(blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     email_sent_at = models.DateTimeField(null=True)
