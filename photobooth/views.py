@@ -34,12 +34,14 @@ def photo(request):
             content_type="text/plain",
         )
 
-    now = timezone.now().strftime("%Y-%m-%d-%H:%M:%S.%f")
+    now = timezone.now().strftime("%Y-%m-%d-%H-%M-%S_")
 
     length = len("data:image/jpeg;base64")
     photo_data = binascii.a2b_base64(body[length:])
     photo_uuid = uuid.uuid4()
-    photo_file = default_storage.save(f"{now}{photo_uuid}.jpg", ContentFile(photo_data))
+    photo_file = default_storage.save(
+        f"{now}{str(photo_uuid)}.jpg", ContentFile(photo_data)
+    )
 
     add_exif_data(photo_uuid, now)
     photo_with_bg = duplicate_image_with_background(photo_uuid, now)
@@ -48,6 +50,7 @@ def photo(request):
         id=photo_uuid,
         photo=photo_file,
         photo_with_bg=photo_with_bg,
+        datetime_str=now,
     )
     if settings.PHOTOBOOTH_USE_QR_CODE:
         photobooth.tasks.rsync_photo.delay()
@@ -68,8 +71,7 @@ def qrcode_link(request, photo_uuid):
         border=4,
     )
     qr.add_data(
-        "URL: %s"
-        % urllib.parse.urljoin(settings.PHOTOBOOTH_BASE_URL, "%s.jpg" % (photo.id,))
+        f"URL: {str(urllib.parse.urljoin(settings.PHOTOBOOTH_BASE_URL, f"{photo.datetime_str}{str(photo.id)}_background.jpg"))}"
     )
     img = qr.make_image()
 
