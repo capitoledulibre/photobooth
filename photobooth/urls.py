@@ -30,6 +30,9 @@ urlpatterns = [
         photobooth.views.qrcode_with_background_link,
         name="qrcode-background",
     ),
+    path(
+        "img-result/<uuid:photo_uuid>/", photobooth.views.img_result, name="img-result"
+    ),
     path("email/", photobooth.views.email, name="email"),
     path(
         "static/<path:path>",

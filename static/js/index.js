@@ -1,12 +1,11 @@
 let video = document.getElementById('video')
-let canvas = document.getElementById('canvas')
-let context = canvas.getContext('2d')
 let Bigcanvas = document.getElementById('Bigcanvas')
 let Bigcontext = Bigcanvas.getContext('2d')
 let debounce = document.getElementById('debounce')
 let secondScreenContainer = document.getElementById('secondScreenContainer')
 let qrcodeImg = document.getElementById('qrcode')
 let qrcodeBackgroundImg = document.getElementById('qrcode_background')
+let imgResult = document.getElementById('imgResult')
 let form = document.getElementById('form')
 let error = document.getElementById('error')
 let success = document.getElementById('success')
@@ -56,8 +55,6 @@ function snapAndSendImage() {
       secondScreenContainer.style.display = 'block'
       clearInterval(interval)
       debounce.innerText = ''
-      canvas.height = canvas.width / cameraAspectRation
-      context.drawImage(video, 0, 0, canvas.width, canvas.height)
       Bigcontext.drawImage(video, 0, 0, captureWidth, captureHeight)
       i = 5
       const myRequest = new Request('/photo/', {
@@ -70,6 +67,7 @@ function snapAndSendImage() {
           form.style.display = 'none'
           qrcodeImg.src = '/qrcode/' + currentPhotoUUID + '/'
           qrcodeBackgroundImg.src = '/qrcode-background/' + currentPhotoUUID + '/'
+          imgResult.src = '/img-result/' + currentPhotoUUID + '/'
           document.getElementById('snapWindow').addEventListener('click', function () {
             window.location.reload()
           })

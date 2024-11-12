@@ -111,6 +111,18 @@ def qrcode_with_background_link(request, photo_uuid):
     )
 
 
+def img_result(request, photo_uuid):
+    photo = get_object_or_404(Photo, id=photo_uuid)
+
+    img_data = open(photo.photo_with_bg.path, "rb").read()
+
+    return HttpResponse(
+        img_data,
+        status=200,
+        content_type="image/jpeg",
+    )
+
+
 @csrf_exempt
 def email(request):
     body = json.loads(request.body)
