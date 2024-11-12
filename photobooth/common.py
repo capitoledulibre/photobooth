@@ -31,22 +31,16 @@ def add_exif_data(photo_uuid: uuid.UUID, now: str):
 def duplicate_image_with_background(photo_uuid: uuid.UUID, now: str) -> str:
     # Duplicate image
     with Image.open(f"media/{now}{str(photo_uuid)}.jpg") as img:
-        img.save(f"media/{now}{str(photo_uuid)}_background.jpg")
+        # Add background
+        background = Image.open("static/img/photobooth-mask.png")
 
-    # Add background
-    my_image = Image.open(f"media/{now}{str(photo_uuid)}_background.jpg")
-    background = Image.open("static/img/photobooth-mask.png")
+        # Define the coordinates for pasting image 2 onto image 1
+        x, y = 0, 0
 
-    # Define the coordinates for pasting image 2 onto image 1
-    x, y = 0, 0
+        img.paste(
+            background, (x, y), background
+        )  # The third argument, background, is used to manage transparency.
 
-    my_image.paste(
-        background, (x, y), background
-    )  # The third argument, background, is used to manage transparency.
-
-    my_image.save(f"media/{now}{str(photo_uuid)}_background.jpg")
-
-    with Image.open(f"media/{now}{str(photo_uuid)}_background.jpg") as img:
         # Convert the PIL Image to a byte stream
         img_bytes = io.BytesIO()
         img.save(img_bytes, format="JPEG")
