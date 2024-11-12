@@ -6,6 +6,7 @@ let Bigcontext = Bigcanvas.getContext('2d')
 let debounce = document.getElementById('debounce')
 let secondScreenContainer = document.getElementById('secondScreenContainer')
 let qrcodeImg = document.getElementById('qrcode')
+let qrcodeBackgroundImg = document.getElementById('qrcode_background')
 let form = document.getElementById('form')
 let error = document.getElementById('error')
 let success = document.getElementById('success')
@@ -67,7 +68,8 @@ function snapAndSendImage() {
         currentPhotoUUID = await response.text()
         if (use_qr_code) {
           form.style.display = 'none'
-          qrcode.src = '/qrcode/' + currentPhotoUUID + '/'
+          qrcodeImg.src = '/qrcode/' + currentPhotoUUID + '/'
+          qrcodeBackgroundImg.src = '/qrcode-background/' + currentPhotoUUID + '/'
           document.getElementById('snapWindow').addEventListener('click', function () {
             window.location.reload()
           })
@@ -86,7 +88,8 @@ function snapAndSendImage() {
             }
           }, 1000)
         } else {
-          qrcode.style.display = 'none'
+          qrcodeImg.style.display = 'none'
+          qrcodeBackgroundImg.style.display = 'none'
         }
       })
     } else {

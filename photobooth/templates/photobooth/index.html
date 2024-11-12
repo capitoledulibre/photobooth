@@ -36,9 +36,21 @@
         <button id="cancel" class="btn btn-light">Retour</button>
         <button id="submit" class="btn btn-primary">Envoyer</button>
       </form>
-      <h2 id="qrcodeText">Scanner le QR code pour Télécharger votre photo.</h2>
-      <img id='qrcode' src="" alt="QR Code en cours de chargement..." class="center" width="300" height="300" />
-      <h4 id="debounceEnd"></h4>
+
+      <div class="container text-center">
+        <h2 id="qrcodeText">Scanner le QR code pour Télécharger votre photo.</h2>
+        <div class="row">
+          <div class="col">
+            <h4 id="qrcodeText">Sans contour</h4>
+            <img id='qrcode' src="" alt="QR Code en cours de chargement..." class="center" width="300" height="300" />
+          </div>
+          <div class="col">
+            <h4 id="qrcodeText">Avec contour</h4>
+            <img id='qrcode_background' src="" alt="QR Code en cours de chargement..." class="center" width="300" height="300" />
+          </div>
+        </div>
+        <h4 id="debounceEnd"></h4>
+      </div>
     </div>
   </div>
 

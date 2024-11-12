@@ -25,6 +25,11 @@ urlpatterns = [
     path("", photobooth.views.home, name="home"),
     path("photo/", photobooth.views.photo, name="photo"),
     path("qrcode/<uuid:photo_uuid>/", photobooth.views.qrcode_link, name="qrcode"),
+    path(
+        "qrcode-background/<uuid:photo_uuid>/",
+        photobooth.views.qrcode_with_background_link,
+        name="qrcode-background",
+    ),
     path("email/", photobooth.views.email, name="email"),
     path(
         "static/<path:path>",

@@ -71,6 +71,31 @@ def qrcode_link(request, photo_uuid):
         border=4,
     )
     qr.add_data(
+        f"URL: {str(urllib.parse.urljoin(settings.PHOTOBOOTH_BASE_URL, f"{photo.datetime_str}{str(photo.id)}.jpg"))}"
+    )
+    img = qr.make_image()
+
+    buffer = io.BytesIO()
+    img.save(buffer)
+    buffer.seek(0)
+
+    return HttpResponse(
+        buffer,
+        status=200,
+        content_type="image/png",
+    )
+
+
+def qrcode_with_background_link(request, photo_uuid):
+    photo = get_object_or_404(Photo, id=photo_uuid)
+
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_M,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(
         f"URL: {str(urllib.parse.urljoin(settings.PHOTOBOOTH_BASE_URL, f"{photo.datetime_str}{str(photo.id)}_background.jpg"))}"
     )
     img = qr.make_image()
