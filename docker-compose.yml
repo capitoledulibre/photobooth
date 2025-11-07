@@ -5,6 +5,7 @@ services:
         build: .
         environment:
         - DJANGO_SETTINGS_MODULE=photobooth.settings.production
+        - DJANGO_DATABASE_PASSWORD
         volumes:
         - media:/srv/app/media
         ports:
@@ -15,6 +16,7 @@ services:
         command: ["/srv/app/deploy/run-celery.sh"]
         environment:
         - DJANGO_SETTINGS_MODULE=photobooth.settings.production
+        - DJANGO_DATABASE_PASSWORD
         volumes:
         - media:/srv/app/media
         - ./ssh:/home/daemon/.ssh
@@ -27,7 +29,7 @@ services:
         environment:
             - POSTGRES_USER=photobooth_user
             - POSTGRES_PASSWORD=password
-            - POSTGRES_DATABASE=photobooth
+            - POSTGRES_DB=photobooth
         restart: unless-stopped
 
 volumes:
