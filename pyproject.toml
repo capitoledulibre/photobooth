@@ -1,40 +1,30 @@
-[tool.poetry]
+[project]
 name = "photobooth"
 version = "1.0.0"
 description = "Capitole du Libre Photobooth."
-authors = ["Clement Cavanier <clement.cavanier@bleemeo.com>", "Lionel Porcheron <lionel.porcheron@bleemeo.com>", "Pierre Fersing <pierre.fersing@bleemeo.com>"]
+authors = [
+    { name = "Clement Cavanier", email = "clement.cavanier@bleemeo.com" },
+    { name = "Lionel Porcheron", email = "lionel.porcheron@bleemeo.com" },
+    { name = "Pierre Fersing", email = "pierre.fersing@bleemeo.com" },
+]
+requires-python = "==3.12.*"
 readme = "README.md"
 
-[tool.poetry.dependencies]
-python = "~3.12"
-Django = "*"
-exif="*"
-Pillow ="*"
-qrcode="*"
-celery="*"
-mysqlclient="*"
-
-[tool.poetry.group.dev.dependencies]
-tox = "*"
-flake8 = '*'
-autopep8="*"
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.ruff]
-exclude = [
-    ".tox/*",
-    ".git/*",
-    "photobooth/settings/*",
-    "*/js/bootstrap.bundle.min.js",
-    "*/css/bootstrap.min.css"
+dependencies = [
+    "Django",
+    "celery",
+    "exif",
+    "Pillow",
+    "psycopg",
+    "qrcode",
 ]
 
-# Same as Black.
-line-length = 88
-indent-width = 4
+[dependency-groups]
+dev = [
+    "autopep8",
+    "flake8",
+    "tox",
+]
 
-# Assume Python 3.12
-target-version = "py312"
+[tool.uv]
+package = false

@@ -7,12 +7,13 @@ TEMPLATE_DEBUG = DEBUG
 ALLOWED_HOSTS = ['*']
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'photobooth',
-        'USER': 'photobooth_user',
-        'PASSWORD': os.environ.get("DJANGO_DATABASE_PASSWORD", 'password'),
-        'HOST': 'mysql',
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": "photobooth",
+        "USER": "photobooth_user",
+        "PASSWORD": os.environ.get("DJANGO_DATABASE_PASSWORD", 'password'),
+        "HOST": "postgresql",
+        "PORT": "",
     }
 }
 

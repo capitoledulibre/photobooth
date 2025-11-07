@@ -22,13 +22,12 @@ services:
     rabbitmq:
         image: rabbitmq
         restart: unless-stopped
-    mysql:
-        image: mysql
+    postgresql:
+        image: postgres:18
         environment:
-            - MYSQL_USER=photobooth_user
-            - MYSQL_PASSWORD=password
-            - MYSQL_DATABASE=photobooth
-            - MYSQL_ROOT_PASSWORD=secret
+            - POSTGRES_USER=photobooth_user
+            - POSTGRES_PASSWORD=password
+            - POSTGRES_DATABASE=photobooth
         restart: unless-stopped
 
 volumes:

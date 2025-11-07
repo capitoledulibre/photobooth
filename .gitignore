@@ -108,3 +108,5 @@ front/node_modules/
 /media/
 .vscode
 /ssh/
+
+.DS_Store

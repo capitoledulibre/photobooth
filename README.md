@@ -14,30 +14,27 @@ Requirements:
 
 We recommend pipx usage on Ubuntu/Debian:
 
-```
+```sh
 sudo apt install pipx
 pipx ensurepath
 echo "Restart your shell if you just installed pipx
-pipx install poetry pre-commit
+pipx install pre-commit uv
 pre-commit install
 ```
 
 On MacOS:
-```
-brew install python@3.12 pipx
+```sh
+brew install python@3.12 postgresql pipx uv
 pipx ensurepath
 echo "Restart your shell if you just installed pipx"
-pipx install poetry pre-commit
+pipx install pre-commit
 pre-commit install
-poetry env use python3.12
 ```
 
-```
-poetry install --no-root --sync
-poetry shell
-
-python manage.py migrate
-python manage.py runserver 8005
+```sh
+uv sync
+uv run python manage.py migrate
+uv run python manage.py runserver 8005
 ```
 
 Then visit http://localhost:8005
@@ -49,17 +46,15 @@ To run with Docker:
   "daemon" inside the container (world readable is fine).
 * Run:
 
-```
+```sh
 docker compose up -d --build
 ```
 
 
 ## Upgrade packages on MacOS::
 
-```
-poetry update
-poetry self add poetry-plugin-export
-poetry export --without-hashes --only main -f requirements.txt --output requirements.txt
-
+```sh
+uv lock --upgrade
+uv export --no-dev --no-hashes > requirements.txt
 pre-commit autoupdate
 ```
