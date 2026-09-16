@@ -20,7 +20,6 @@ from django.views import static as views_static
 
 import photobooth.views
 
-
 urlpatterns = [
     path("", photobooth.views.home, name="home"),
     path("photo/", photobooth.views.photo, name="photo"),

@@ -1,11 +1,12 @@
 import io
 import uuid
-from django.utils import timezone
-from PIL import Image
-from exif import Image as ImageExif
-from exif import GpsAltitudeRef, DATETIME_STR_FORMAT
+
 from django.core.files.storage import default_storage
 from django.core.files.uploadedfile import InMemoryUploadedFile
+from django.utils import timezone
+from exif import DATETIME_STR_FORMAT, GpsAltitudeRef
+from exif import Image as ImageExif
+from PIL import Image
 
 
 def add_exif_data(photo_uuid: uuid.UUID, now: str):
@@ -13,7 +14,7 @@ def add_exif_data(photo_uuid: uuid.UUID, now: str):
     Adds date and time to an image.
     """
 
-    with open(f"media/{now}{str(photo_uuid)}.jpg", "rb") as image_file:
+    with open(f"media/{now}{photo_uuid!s}.jpg", "rb") as image_file:
         my_image = ImageExif(image_file)
 
         my_image.datetime_original = timezone.localtime().strftime(DATETIME_STR_FORMAT)
@@ -24,13 +25,13 @@ def add_exif_data(photo_uuid: uuid.UUID, now: str):
         my_image.gps_altitude = 155
         my_image.gps_altitude_ref = GpsAltitudeRef.ABOVE_SEA_LEVEL
 
-        with open(f"media/{now}{str(photo_uuid)}.jpg", "wb") as new_my_image:
+        with open(f"media/{now}{photo_uuid!s}.jpg", "wb") as new_my_image:
             new_my_image.write(my_image.get_file())
 
 
 def duplicate_image_with_background(photo_uuid: uuid.UUID, now: str) -> str:
     # Duplicate image
-    with Image.open(f"media/{now}{str(photo_uuid)}.jpg") as img:
+    with Image.open(f"media/{now}{photo_uuid!s}.jpg") as img:
         # Add background
         background = Image.open("static/img/photobooth-mask.png")
 
@@ -50,10 +51,10 @@ def duplicate_image_with_background(photo_uuid: uuid.UUID, now: str) -> str:
         image_file = InMemoryUploadedFile(
             img_bytes,
             field_name="photo_with_bg",
-            name=f"{now}{str(photo_uuid)}_background.jpg",
+            name=f"{now}{photo_uuid!s}_background.jpg",
             content_type="image/jpeg",
             size=len(img_bytes.getvalue()),
             charset=None,
         )
 
-    return default_storage.save(f"{now}{str(photo_uuid)}_background.jpg", image_file)
+    return default_storage.save(f"{now}{photo_uuid!s}_background.jpg", image_file)

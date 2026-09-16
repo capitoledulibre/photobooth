@@ -12,3 +12,7 @@ exclude = [
     "*/js/bootstrap.bundle.min.js",
     "*/css/bootstrap.min.css"
 ]
+
+[lint.per-file-ignores]
+# Django auto-generates migrations; their class attributes are mutable by design.
+"photobooth/migrations/*" = ["RUF012"]

@@ -1,22 +1,25 @@
+import binascii
 import io
 import json
-import binascii
-import uuid
+import logging
 import urllib.parse
+import uuid
 
+import qrcode
+from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.conf import settings
 from django.core.mail import EmailMessage
-from django.utils import timezone
-from django.shortcuts import get_object_or_404, render
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-import qrcode
 
+import photobooth.tasks
 from photobooth.common import add_exif_data, duplicate_image_with_background
 from photobooth.models import Photo
-import photobooth.tasks
+
+logger = logging.getLogger(__name__)
 
 
 def home(request):
@@ -27,7 +30,7 @@ def home(request):
 def photo(request):
     body = request.body.decode("utf-8")
     if not body.startswith("data:image/jpeg;base64"):
-        print("Body data starts with: %r" % body[:20])
+        logger.warning("Body data starts with: %r", body[:20])
         return HttpResponse(
             "Bad data-uri format",
             status=400,
@@ -40,7 +43,7 @@ def photo(request):
     photo_data = binascii.a2b_base64(body[length:])
     photo_uuid = uuid.uuid4()
     photo_file = default_storage.save(
-        f"{now}{str(photo_uuid)}.jpg", ContentFile(photo_data)
+        f"{now}{photo_uuid!s}.jpg", ContentFile(photo_data)
     )
 
     add_exif_data(photo_uuid, now)
@@ -71,7 +74,7 @@ def qrcode_link(request, photo_uuid):
         border=4,
     )
     qr.add_data(
-        f"URL: {str(urllib.parse.urljoin(settings.PHOTOBOOTH_BASE_URL, f'{photo.datetime_str}{str(photo.id)}.jpg'))}"
+        f"URL: {urllib.parse.urljoin(settings.PHOTOBOOTH_BASE_URL, f'{photo.datetime_str}{photo.id!s}.jpg')!s}"
     )
     img = qr.make_image()
 
@@ -96,7 +99,7 @@ def qrcode_with_background_link(request, photo_uuid):
         border=4,
     )
     qr.add_data(
-        f"URL: {str(urllib.parse.urljoin(settings.PHOTOBOOTH_BASE_URL, f'{photo.datetime_str}{str(photo.id)}_background.jpg'))}"
+        f"URL: {urllib.parse.urljoin(settings.PHOTOBOOTH_BASE_URL, f'{photo.datetime_str}{photo.id!s}_background.jpg')!s}"
     )
     img = qr.make_image()
 
@@ -114,7 +117,8 @@ def qrcode_with_background_link(request, photo_uuid):
 def img_result(request, photo_uuid):
     photo = get_object_or_404(Photo, id=photo_uuid)
 
-    img_data = open(photo.photo_with_bg.path, "rb").read()
+    with open(photo.photo_with_bg.path, "rb") as image_file:
+        img_data = image_file.read()
 
     return HttpResponse(
         img_data,
