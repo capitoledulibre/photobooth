@@ -3,7 +3,7 @@
 Capitole du Libre Photobooth
 
 Simple Django Web application for a photobooth. Main features are:
-- simple du deploy with Docker
+- simple to deploy with Docker
 - local or remote web application
 - push pictures on a remote server (rsync) and display QRcode to download picture
 
@@ -17,7 +17,7 @@ We recommend pipx usage on Ubuntu/Debian:
 ```sh
 sudo apt install pipx
 pipx ensurepath
-echo "Restart your shell if you just installed pipx
+echo "Restart your shell if you just installed pipx"
 pipx install pre-commit uv
 pre-commit install
 ```
