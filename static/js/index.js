@@ -60,8 +60,7 @@ function snapAndSendImage() {
           throw new Error('Upload failed with HTTP ' + response.status)
         }
         currentPhotoUUID = await response.text()
-        qrcodeImg.src = '/qrcode/' + currentPhotoUUID + '/'
-        qrcodeBackgroundImg.src = '/qrcode-background/' + currentPhotoUUID + '/'
+        waitForPublication(currentPhotoUUID)
         imgResult.src = '/img-result/' + currentPhotoUUID + '/'
         document.getElementById('snapWindow').addEventListener('click', function () {
           window.location.reload()
@@ -95,6 +94,26 @@ function snapAndSendImage() {
       i = i - 1
     }
   }, 1000)
+}
+
+// The QR codes point to the download server, which only has the photo once
+// the rsync task is done: don't show them before that.
+async function waitForPublication(photoUUID) {
+  const deadline = Date.now() + 60000
+  while (Date.now() < deadline) {
+    try {
+      const response = await fetch('/status/' + photoUUID + '/')
+      if (response.ok && (await response.json()).published) {
+        qrcodeImg.src = '/qrcode/' + photoUUID + '/'
+        qrcodeBackgroundImg.src = '/qrcode-background/' + photoUUID + '/'
+        return
+      }
+    } catch (err) {
+      console.error(err)
+    }
+    await new Promise(resolve => setTimeout(resolve, 1000))
+  }
+  qrcodeImg.alt = qrcodeBackgroundImg.alt = 'Téléchargement indisponible pour le moment'
 }
 
 function canvasToBase64() {

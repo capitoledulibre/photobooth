@@ -6,10 +6,12 @@ import tempfile
 import uuid
 from unittest import mock
 
+import qrcode
 from django.test import TestCase, override_settings
 from exif import Image as ImageExif
 from PIL import Image
 
+import photobooth.tasks
 from photobooth.models import Photo
 
 
@@ -28,7 +30,7 @@ class PhotoboothTestCase(TestCase):
         settings_override.enable()
         self.addCleanup(settings_override.disable)
 
-        # The rsync task shells out to flock/rsync; don't run it in tests.
+        # The rsync task shells out to rsync; don't run it from the views.
         patcher = mock.patch("photobooth.tasks.rsync_photo.delay")
         self.rsync_delay = patcher.start()
         self.addCleanup(patcher.stop)
@@ -70,17 +72,51 @@ class PhotoboothTestCase(TestCase):
 
         self.rsync_delay.assert_called_once_with()
 
-    def test_qrcodes_and_result(self):
+    def test_qrcodes_contain_plain_urls(self):
         photo = self.take_photo()
+        base_name = f"https://photo.capitoledulibre.org/{photo.datetime_str}{photo.id}"
 
-        for url in (f"/qrcode/{photo.id}/", f"/qrcode-background/{photo.id}/"):
-            response = self.client.get(url)
+        real_add_data = qrcode.QRCode.add_data
+        for url, expected in (
+            (f"/qrcode/{photo.id}/", f"{base_name}.jpg"),
+            (f"/qrcode-background/{photo.id}/", f"{base_name}_background.jpg"),
+        ):
+            with mock.patch.object(
+                qrcode.QRCode, "add_data", autospec=True, side_effect=real_add_data
+            ) as add_data:
+                response = self.client.get(url)
             self.assertEqual(response.status_code, 200)
             self.assertEqual(response["Content-Type"], "image/png")
+            add_data.assert_called_once_with(mock.ANY, expected)
 
+    def test_img_result(self):
+        photo = self.take_photo()
         response = self.client.get(f"/img-result/{photo.id}/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "image/jpeg")
+
+    def test_status(self):
+        photo = self.take_photo()
+        url = f"/status/{photo.id}/"
+        self.assertEqual(self.client.get(url).json(), {"published": False})
+
+        with mock.patch("subprocess.check_call") as check_call:
+            photobooth.tasks.rsync_photo()
+        check_call.assert_called_once_with("echo rsync", shell=True)
+
+        self.assertEqual(self.client.get(url).json(), {"published": True})
+
+    def test_failed_rsync_does_not_publish(self):
+        photo = self.take_photo()
+
+        with (
+            mock.patch("subprocess.check_call", side_effect=OSError("boom")),
+            self.assertRaises(OSError),
+        ):
+            photobooth.tasks.rsync_photo()
+
+        photo.refresh_from_db()
+        self.assertIsNone(photo.published_at)
 
     def test_unknown_photo_returns_404(self):
         unknown = uuid.uuid4()
@@ -88,5 +124,6 @@ class PhotoboothTestCase(TestCase):
             f"/qrcode/{unknown}/",
             f"/qrcode-background/{unknown}/",
             f"/img-result/{unknown}/",
+            f"/status/{unknown}/",
         ):
-            self.assertEqual(self.client.get(url).status_code, 404)
+            self.assertEqual(self.client.get(url).status_code, 404, url)
