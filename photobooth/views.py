@@ -1,6 +1,5 @@
 import binascii
 import io
-import json
 import logging
 import urllib.parse
 import uuid
@@ -9,7 +8,6 @@ import qrcode
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.core.mail import EmailMessage
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
@@ -23,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 def home(request):
-    return render(request, "photobooth/index.html", {"settings": settings})
+    return render(request, "photobooth/index.html")
 
 
 @csrf_exempt
@@ -55,8 +53,7 @@ def photo(request):
         photo_with_bg=photo_with_bg,
         datetime_str=now,
     )
-    if settings.PHOTOBOOTH_USE_QR_CODE:
-        photobooth.tasks.rsync_photo.delay()
+    photobooth.tasks.rsync_photo.delay()
     return HttpResponse(
         str(photo.id),
         status=200,
@@ -124,33 +121,4 @@ def img_result(request, photo_uuid):
         img_data,
         status=200,
         content_type="image/jpeg",
-    )
-
-
-@csrf_exempt
-def email(request):
-    body = json.loads(request.body)
-
-    photo = get_object_or_404(Photo, id=body["uuid"])
-    photo.email = body["email"]
-    photo.save()
-
-    msg = EmailMessage(
-        "Photobooth Capitole du Libre",
-        "Bonjour,\nMerci de votre passage au Capitole du Libre",
-        settings.FROM_EMAIL,
-        [photo.email],
-    )
-    with photo.photo.open() as fileobj:
-        msg_img = fileobj.read()
-        msg.attach("capitole-du-libre.jpeg", msg_img, "image/jpeg")
-    msg.send()
-
-    photo.email_sent_at = timezone.now()
-    photo.save()
-
-    return HttpResponse(
-        "ok",
-        status=200,
-        content_type="text/plain",
     )

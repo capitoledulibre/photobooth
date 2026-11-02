@@ -32,7 +32,6 @@ urlpatterns = [
     path(
         "img-result/<uuid:photo_uuid>/", photobooth.views.img_result, name="img-result"
     ),
-    path("email/", photobooth.views.email, name="email"),
     path(
         "static/<path:path>",
         views_static.serve,

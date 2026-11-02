@@ -50,19 +50,6 @@ h3 {
   text-align: center;
 }
 
-#error {
-  color: red;
-  font-size: 110%;
-}
-
-#success {
-  color: green;
-  font-size: 300%;
-  width: 80rem;
-  display: none;
-  text-align: center;
-}
-
 #secondScreenContainer {
   display: none;
 }

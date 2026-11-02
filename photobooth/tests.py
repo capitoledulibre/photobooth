@@ -1,13 +1,11 @@
 import base64
 import io
-import json
 import os
 import shutil
 import tempfile
 import uuid
 from unittest import mock
 
-from django.core import mail
 from django.test import TestCase, override_settings
 from exif import Image as ImageExif
 from PIL import Image
@@ -92,21 +90,3 @@ class PhotoboothTestCase(TestCase):
             f"/img-result/{unknown}/",
         ):
             self.assertEqual(self.client.get(url).status_code, 404)
-
-    def test_email(self):
-        photo = self.take_photo()
-
-        response = self.client.post(
-            "/email/",
-            data=json.dumps({"uuid": str(photo.id), "email": "visitor@example.org"}),
-            content_type="application/json",
-        )
-        self.assertEqual(response.status_code, 200)
-
-        photo.refresh_from_db()
-        self.assertEqual(photo.email, "visitor@example.org")
-        self.assertIsNotNone(photo.email_sent_at)
-
-        self.assertEqual(len(mail.outbox), 1)
-        self.assertEqual(mail.outbox[0].to, ["visitor@example.org"])
-        self.assertEqual(len(mail.outbox[0].attachments), 1)

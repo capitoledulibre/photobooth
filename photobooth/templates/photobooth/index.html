@@ -14,8 +14,6 @@
   <canvas style="display: none" id="Bigcanvas" class="border"></canvas>
   <video id="video" autoplay></video>
   <p id="debounce" class="snapAndDebounce">Appuyez sur le buzzer pour prendre une photo</p>
-  <p id="success" class="snapAndDebounce">Vous devriez recevoir un mail avec votre photo dans quelques instants. <br />
-    Merci d'avoir utilisé ce photobooth :)</p>
   <div id="secondScreenContainer">
     <div id="title" class="mx-auto">
       <img width="100%" src="/static/img/logo-capitoledulibre.png" />
@@ -24,19 +22,6 @@
       <img id="imgResult" width="100%" src="" />
     </div>
     <div id="formContainer" class="mx-auto">
-      <form autocomplete="off" id="form">
-        <div class="form-group">
-          <label for="exampleInputEmail1">Adresse mail</label>
-          <input autocomplete="off" type="email" class="form-control" id="inputEmail" aria-describedby="emailHelp"
-            placeholder="mail@exemple.fr">
-          <small id="emailHelp" class="form-text text-muted">Votre adresse mail ne sera transmise à AUCUNE partie
-            tierce.</small>
-        </div>
-        <p id="error"></p>
-        <button id="cancel" class="btn btn-light">Retour</button>
-        <button id="submit" class="btn btn-primary">Envoyer</button>
-      </form>
-
       <div class="container text-center">
         <h2 class="qrcodeText">Scanner un QR code pour Télécharger votre photo.</h2>
         <div class="row">
@@ -54,13 +39,6 @@
     </div>
   </div>
 
-  <script>
-    {% if settings.PHOTOBOOTH_USE_QR_CODE %}
-    let use_qr_code = true;
-    {% else %}
-    let use_qr_code = false;
-    {% endif %}
-  </script>
   <script src="/static/js/bootstrap.bundle.min.js"></script>
   <script src="/static/js/index.js"></script>
 </body>
