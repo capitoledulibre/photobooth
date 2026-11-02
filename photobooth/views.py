@@ -1,4 +1,3 @@
-import binascii
 import io
 import logging
 import urllib.parse
@@ -8,11 +7,11 @@ import qrcode
 from django.conf import settings
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.http import HttpResponse, JsonResponse
+from django.http import FileResponse, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 
 import photobooth.tasks
 from photobooth.common import add_exif_data, duplicate_image_with_background
@@ -20,26 +19,28 @@ from photobooth.models import Photo
 
 logger = logging.getLogger(__name__)
 
+# Every JPEG file starts with the SOI (start of image) marker.
+JPEG_MAGIC = b"\xff\xd8"
 
+
+@require_GET
 def home(request):
     return render(request, "photobooth/index.html")
 
 
 @csrf_exempt
+@require_POST
 def photo(request):
-    body = request.body.decode("utf-8")
-    if not body.startswith("data:image/jpeg;base64"):
-        logger.warning("Body data starts with: %r", body[:20])
+    photo_data = request.body
+    if not photo_data.startswith(JPEG_MAGIC):
+        logger.warning("Body data starts with: %r", photo_data[:20])
         return HttpResponse(
-            "Bad data-uri format",
+            "Expected a JPEG image",
             status=400,
             content_type="text/plain",
         )
 
     now = timezone.now().strftime("%Y-%m-%d-%H-%M-%S_")
-
-    length = len("data:image/jpeg;base64")
-    photo_data = binascii.a2b_base64(body[length:])
     photo_uuid = uuid.uuid4()
     photo_file = default_storage.save(
         f"{now}{photo_uuid!s}.jpg", ContentFile(photo_data)
@@ -98,14 +99,7 @@ def qrcode_with_background_link(request, photo_uuid):
     return _qrcode_response(f"{photo.datetime_str}{photo.id!s}_background.jpg")
 
 
+@require_GET
 def img_result(request, photo_uuid):
     photo = get_object_or_404(Photo, id=photo_uuid)
-
-    with open(photo.photo_with_bg.path, "rb") as image_file:
-        img_data = image_file.read()
-
-    return HttpResponse(
-        img_data,
-        status=200,
-        content_type="image/jpeg",
-    )
+    return FileResponse(photo.photo_with_bg.open("rb"), content_type="image/jpeg")

@@ -9,8 +9,6 @@ exclude = [
     ".tox/*",
     ".git/*",
     "photobooth/settings/*",
-    "*/js/bootstrap.bundle.min.js",
-    "*/css/bootstrap.min.css"
 ]
 
 [lint.per-file-ignores]

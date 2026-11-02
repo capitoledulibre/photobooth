@@ -1,6 +1,4 @@
-import base64
 import io
-import os
 import shutil
 import tempfile
 import uuid
@@ -15,10 +13,10 @@ import photobooth.tasks
 from photobooth.models import Photo
 
 
-def make_data_uri(width=640, height=360):
+def make_jpeg(width=640, height=360):
     buffer = io.BytesIO()
     Image.new("RGB", (width, height), "blue").save(buffer, format="JPEG")
-    return "data:image/jpeg;base64," + base64.b64encode(buffer.getvalue()).decode()
+    return buffer.getvalue()
 
 
 class PhotoboothTestCase(TestCase):
@@ -35,9 +33,9 @@ class PhotoboothTestCase(TestCase):
         self.rsync_delay = patcher.start()
         self.addCleanup(patcher.stop)
 
-    def take_photo(self):
+    def take_photo(self, width=640, height=360):
         response = self.client.post(
-            "/photo/", data=make_data_uri(), content_type="text/plain"
+            "/photo/", data=make_jpeg(width, height), content_type="image/jpeg"
         )
         self.assertEqual(response.status_code, 200)
         return Photo.objects.get(id=response.content.decode())
@@ -49,28 +47,40 @@ class PhotoboothTestCase(TestCase):
 
     def test_photo_rejects_invalid_body(self):
         response = self.client.post(
-            "/photo/", data="not a data uri", content_type="text/plain"
+            "/photo/", data=b"not a jpeg", content_type="image/jpeg"
         )
         self.assertEqual(response.status_code, 400)
         self.assertFalse(Photo.objects.exists())
 
+    def test_photo_rejects_get(self):
+        self.assertEqual(self.client.get("/photo/").status_code, 405)
+
     def test_photo_is_stored_with_exif_and_background(self):
         photo = self.take_photo()
 
-        self.assertTrue(os.path.exists(photo.photo.path))
-        self.assertTrue(os.path.exists(photo.photo_with_bg.path))
         self.assertTrue(photo.photo.path.startswith(self.media_root))
         self.assertTrue(photo.photo_with_bg.path.startswith(self.media_root))
 
-        with open(photo.photo.path, "rb") as fileobj:
-            exif_image = ImageExif(fileobj)
-        self.assertTrue(exif_image.has_exif)
-        self.assertEqual(exif_image.gps_latitude_ref, "N")
+        for path in (photo.photo.path, photo.photo_with_bg.path):
+            with open(path, "rb") as fileobj:
+                exif_image = ImageExif(fileobj)
+            self.assertTrue(exif_image.has_exif, path)
+            self.assertEqual(exif_image.gps_latitude_ref, "N", path)
+
+        self.assertIsNone(photo.published_at)
+        self.rsync_delay.assert_called_once_with()
+
+    def test_background_is_scaled_to_the_photo(self):
+        # The mask is 4K; a 1080p photo must get the whole frame, not a
+        # quarter of it.
+        photo = self.take_photo(1920, 1080)
 
         with Image.open(photo.photo_with_bg.path) as img:
             self.assertEqual(img.format, "JPEG")
-
-        self.rsync_delay.assert_called_once_with()
+            self.assertEqual(img.size, (1920, 1080))
+            # The mask frame covers the bottom-right corner, which is outside
+            # the top-left quarter that an unscaled mask would cover.
+            self.assertNotEqual(img.getpixel((1910, 1070)), (0, 0, 255))
 
     def test_qrcodes_contain_plain_urls(self):
         photo = self.take_photo()
@@ -94,6 +104,7 @@ class PhotoboothTestCase(TestCase):
         response = self.client.get(f"/img-result/{photo.id}/")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response["Content-Type"], "image/jpeg")
+        self.assertTrue(b"".join(response.streaming_content).startswith(b"\xff\xd8"))
 
     def test_status(self):
         photo = self.take_photo()

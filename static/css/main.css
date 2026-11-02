@@ -1,66 +1,239 @@
+/*
+ * The page has one screen per state, selected by body[data-state]:
+ *   starting, camera-error, idle, countdown, failed -> camera preview + overlay
+ *   uploading, result                               -> result screen
+ */
+
+:root {
+  --bg: #fff;
+  --fg: #111;
+  --muted: #555;
+  --accent: #c0392b;
+  --overlay-bg: rgba(255, 255, 255, 0.75);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
 body {
-  background-color: white;
-  color: black;
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   text-align: center;
-}
-h3 {
-  font-size: 200%;
-}
-
-.videos {
-  width: 750px;
-  margin-top: 2.5rem;
+  cursor: none;
+  user-select: none;
 }
 
-.border {
-  border-radius: 5px 5px;
-  border: 2px solid black !important;
+/* Camera preview */
+
+#preview {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  background: #000;
 }
 
-#title {
-  margin-top: 0.5rem;
-  width: 30rem;
-}
+/* Overlay message on top of the preview */
 
-#formContainer {
-  width: 50rem;
-}
-
-.snapAndDebounce {
-  position: absolute;
+#overlay {
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  max-width: 90vw;
+  padding: 2vh 4vw;
+  border-radius: 2vh;
+  background: var(--overlay-bg);
 }
 
-#video {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  min-width: 100%;
-  min-height: 100%;
-  max-width: 100%;
-  max-height: 100%;
+#message {
+  margin: 0;
+  font-size: 5vh;
+  font-weight: 600;
 }
 
-#debounce {
-  background-color: rgba(250, 250, 250, 0.5);
-  width: 60rem;
-  font-size: 400%;
-  text-align: center;
+#hint {
+  margin: 1vh 0 0;
+  font-size: 3vh;
+  color: var(--muted);
 }
 
-#secondScreenContainer {
+#hint:empty {
   display: none;
 }
 
-.center {
+body[data-state="countdown"] #message {
+  font-size: 25vh;
+  line-height: 1;
+}
+
+body[data-state="camera-error"] #message,
+body[data-state="failed"] #message {
+  color: var(--accent);
+}
+
+/* White flash when the photo is taken */
+
+#flash {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#flash.active {
+  animation: flash 600ms ease-out;
+}
+
+@keyframes flash {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+/* Result screen */
+
+#result {
+  display: none;
+  position: fixed;
+  inset: 0;
+  padding: 3vh 3vw;
+  gap: 2vh 3vw;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "logo logo"
+    "frame download"
+    "footer footer";
+  background: var(--bg);
+}
+
+body[data-state="uploading"] #result,
+body[data-state="result"] #result {
+  display: grid;
+}
+
+body[data-state="uploading"] #overlay,
+body[data-state="result"] #overlay {
+  display: none;
+}
+
+.logo {
+  grid-area: logo;
+  justify-self: center;
+  height: 7vh;
+}
+
+.frame {
+  grid-area: frame;
+  position: relative;
+}
+
+#capture,
+#photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+#photo {
+  display: none;
+}
+
+#photo.loaded {
   display: block;
+}
+
+#download {
+  grid-area: download;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 34vh;
+}
+
+#download h2 {
+  margin: 0 0 2vh;
+  font-size: 3vh;
+}
+
+.qrcodes {
+  display: none;
+  flex-direction: column;
+  gap: 2vh;
+}
+
+.qrcodes figure {
+  margin: 0;
+}
+
+.qrcodes img {
+  display: block;
+  width: 26vh;
+  height: 26vh;
   margin: 0 auto;
 }
 
-#debounceEnd {
-  text-align: center;
-  margin-left: -5rem;
-  width: 57rem;
+.qrcodes figcaption {
+  font-size: 2.2vh;
+  font-weight: 600;
+}
+
+.status {
+  display: none;
+  font-size: 2.5vh;
+  color: var(--muted);
+}
+
+#download[data-status="uploading"] .status-uploading,
+#download[data-status="pending"] .status-pending,
+#download[data-status="unavailable"] .status-unavailable {
+  display: block;
+}
+
+#download[data-status="ready"] .qrcodes {
+  display: flex;
+}
+
+.spinner {
+  display: inline-block;
+  width: 2.5vh;
+  height: 2.5vh;
+  margin-right: 1vh;
+  vertical-align: middle;
+  border: 0.4vh solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+#countdown-end {
+  grid-area: footer;
+  margin: 0;
+  font-size: 2.5vh;
+  color: var(--muted);
 }

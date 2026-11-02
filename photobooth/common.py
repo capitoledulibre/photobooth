@@ -3,12 +3,15 @@ import os
 import uuid
 
 from django.conf import settings
+from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
-from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.utils import timezone
 from exif import DATETIME_STR_FORMAT, GpsAltitudeRef
 from exif import Image as ImageExif
 from PIL import Image
+
+# Quality used when re-encoding the photo with the background mask.
+JPEG_QUALITY = 92
 
 
 def _photo_path(photo_uuid: uuid.UUID, now: str) -> str:
@@ -36,33 +39,27 @@ def add_exif_data(photo_uuid: uuid.UUID, now: str):
 
 
 def duplicate_image_with_background(photo_uuid: uuid.UUID, now: str) -> str:
-    # Duplicate image
-    with Image.open(_photo_path(photo_uuid, now)) as img:
-        # Add background
-        background = Image.open(
-            os.path.join(settings.STATIC_ROOT, "img", "photobooth-mask.png")
-        )
+    """
+    Saves a copy of the photo with the photobooth mask on top of it.
+    """
+    mask_path = os.path.join(settings.STATIC_ROOT, "img", "photobooth-mask.png")
 
-        # Define the coordinates for pasting image 2 onto image 1
-        x, y = 0, 0
+    with Image.open(_photo_path(photo_uuid, now)) as img, Image.open(mask_path) as mask:
+        # The mask is drawn for 4K; scale it so it frames photos taken by
+        # lower resolution cameras too, instead of only covering a corner.
+        if mask.size != img.size:
+            mask = mask.resize(img.size, Image.Resampling.LANCZOS)
 
-        img.paste(
-            background, (x, y), background
-        )  # The third argument, background, is used to manage transparency.
+        # The third argument uses the mask alpha channel for transparency.
+        img.paste(mask, (0, 0), mask)
 
-        # Convert the PIL Image to a byte stream
+        save_kwargs = {"format": "JPEG", "quality": JPEG_QUALITY}
+        if "exif" in img.info:
+            save_kwargs["exif"] = img.info["exif"]
+
         img_bytes = io.BytesIO()
-        img.save(img_bytes, format="JPEG")
-        img_bytes.seek(0)
+        img.save(img_bytes, **save_kwargs)
 
-        # Create an InMemoryUploadedFile object
-        image_file = InMemoryUploadedFile(
-            img_bytes,
-            field_name="photo_with_bg",
-            name=f"{now}{photo_uuid!s}_background.jpg",
-            content_type="image/jpeg",
-            size=len(img_bytes.getvalue()),
-            charset=None,
-        )
-
-    return default_storage.save(f"{now}{photo_uuid!s}_background.jpg", image_file)
+    return default_storage.save(
+        f"{now}{photo_uuid!s}_background.jpg", ContentFile(img_bytes.getvalue())
+    )

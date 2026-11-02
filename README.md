@@ -10,7 +10,7 @@ Simple Django Web application for a photobooth. Main features are:
 Requirements:
 - a webcam for taking pictures
 - a computer with a web browser
-- a mouse (a click on mouse will take pictures)
+- a buzzer acting as a mouse click or a key press (it takes the picture)
 
 We recommend pipx usage on Ubuntu/Debian:
 

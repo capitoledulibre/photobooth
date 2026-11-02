@@ -2,6 +2,4 @@
 extend-exclude = [
     "photobooth/templates/photobooth/index.html",
     "static/js/index.js",
-    "static/css/bootstrap.min.css",
-    "static/js/bootstrap.bundle.min.js"
 ]

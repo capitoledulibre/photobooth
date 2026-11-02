@@ -1,121 +1,289 @@
-let video = document.getElementById('video')
-let Bigcanvas = document.getElementById('Bigcanvas')
-let Bigcontext = Bigcanvas.getContext('2d')
-let debounce = document.getElementById('debounce')
-let secondScreenContainer = document.getElementById('secondScreenContainer')
-let qrcodeImg = document.getElementById('qrcode')
-let qrcodeBackgroundImg = document.getElementById('qrcode_background')
-let imgResult = document.getElementById('imgResult')
-let debounceEnd = document.getElementById('debounceEnd')
-let interval = null
-let intervalDebounceEnd
-let image = null
-let i = 5
-let iDebounceEnd = 45
-let currentPhotoUUID = null
-const captureWidth = 1920 * 2
-const captureHeight = 1080 * 2
-let cameraAspectRation = 1
+'use strict'
 
-Bigcanvas.width = captureWidth
-Bigcanvas.height = captureHeight
+/*
+ * Photobooth kiosk.
+ *
+ * The page is a small state machine; the current state is stored in
+ * body[data-state] and the CSS shows the matching screen:
+ *
+ *   starting -> idle -> countdown -> uploading -> result -> idle
+ *                 ^                      |
+ *                 +------- failed <------+
+ *   starting/any -> camera-error -> (retry) -> idle
+ *
+ * The camera stream stays open for the whole lifetime of the page, so going
+ * back to the idle screen is instant.
+ */
 
-if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-  navigator.mediaDevices
-    .getUserMedia({ video: { width: captureWidth, height: captureHeight } })
-    .then(stream => {
-      const tracks = stream.getVideoTracks()
-      const settings = tracks[0].getSettings()
-      console.log("Camera is ", tracks[0].label)
-      console.log("Get video with ", settings.width, "x", settings.height, " fps=", settings.frameRate, " aspect=", settings.aspectRatio);
-      cameraAspectRation = settings.aspectRatio
-      video.srcObject = stream
-      video.play()
-    })
-    .catch(error => {
-      console.error(error)
-      alert('Can not access to camera :/')
-    })
+const COUNTDOWN_SECONDS = 5
+const RESULT_SECONDS = 45
+// Ignore buzzer presses right after the result shows up, so an impatient
+// double press does not skip the QR codes.
+const RESULT_CLICK_GRACE_MS = 3000
+const FAILED_SECONDS = 5
+const CAMERA_RETRY_MS = 5000
+const PUBLISH_POLL_MS = 1000
+const PUBLISH_TIMEOUT_MS = 60000
+// Photos are cropped to the aspect ratio of the background mask (16:9).
+const CAPTURE_ASPECT_RATIO = 16 / 9
+const CAPTURE_IDEAL_WIDTH = 3840
+const CAPTURE_IDEAL_HEIGHT = 2160
+const JPEG_QUALITY = 0.92
+
+const TEXT = {
+  idle: 'Appuyez sur le buzzer pour prendre une photo',
+  smile: 'Pensez à sourire :)',
+  cameraError: "Impossible d'accéder à la caméra",
+  cameraRetry: 'Nouvel essai dans quelques secondes…',
+  failed: "Oups, la photo n'a pas pu être enregistrée.",
+  failedHint: 'Veuillez réessayer.',
 }
 
-document.getElementById('snapWindow').addEventListener('click', snapAndSendImage)
+const el = {
+  preview: document.getElementById('preview'),
+  message: document.getElementById('message'),
+  hint: document.getElementById('hint'),
+  flash: document.getElementById('flash'),
+  capture: document.getElementById('capture'),
+  photo: document.getElementById('photo'),
+  download: document.getElementById('download'),
+  qrcode: document.getElementById('qrcode'),
+  qrcodeBackground: document.getElementById('qrcode-background'),
+  countdownEnd: document.getElementById('countdown-end'),
+}
 
-function snapAndSendImage() {
-  document.getElementById('snapWindow').removeEventListener('click', snapAndSendImage)
-  debounce.innerHTML = 'Pensez à sourire :)'
-  interval = setInterval(() => {
-    if (i === 0) {
-      video.style.display = 'none'
-      secondScreenContainer.style.display = 'block'
-      clearInterval(interval)
-      debounce.innerText = ''
-      Bigcontext.drawImage(video, 0, 0, captureWidth, captureHeight)
-      i = 5
-      const myRequest = new Request('/photo/', {
-        method: 'POST',
-        body: canvasToBase64()
-      })
-      fetch(myRequest).then(async function (response) {
-        if (!response.ok) {
-          throw new Error('Upload failed with HTTP ' + response.status)
-        }
-        currentPhotoUUID = await response.text()
-        waitForPublication(currentPhotoUUID)
-        imgResult.src = '/img-result/' + currentPhotoUUID + '/'
-        document.getElementById('snapWindow').addEventListener('click', function () {
-          window.location.reload()
-        })
-        setInterval(() => {
-          if (iDebounceEnd === 0) {
-            window.location.reload()
-          } else {
-            const secText = iDebounceEnd <= 1 ? 'seconde' : 'secondes'
-            debounceEnd.innerHTML =
-              "Cette page s'auto-détruira dans " +
-              iDebounceEnd +
-              ' ' +
-              secText +
-              ".<br />Vous pouvez également appuyer sur le buzzer si vous avez fini. <br />Merci d'avoir utilisé ce photobooth :)"
-            iDebounceEnd = iDebounceEnd - 1
-          }
-        }, 1000)
-      }).catch(err => {
-        // Don't leave the kiosk stuck on an empty screen: tell the user and
-        // reset the page so the next person can try again.
-        console.error(err)
-        secondScreenContainer.style.display = 'none'
-        debounce.innerText = 'Oups, la photo n\'a pas pu être enregistrée. Veuillez réessayer.'
-        setTimeout(() => {
-          window.location.reload()
-        }, 5000)
-      })
-    } else {
-      debounce.innerText = i + '...'
-      i = i - 1
+let state = 'starting'
+// Incremented each time we go back to idle. Async callbacks (fetch, timers)
+// started for a previous visitor compare it to their own value and give up.
+let session = 0
+let timers = []
+let resultClickableAt = 0
+
+function setState(newState) {
+  state = newState
+  document.body.dataset.state = newState
+}
+
+function showMessage(message, hint = '') {
+  el.message.textContent = message
+  el.hint.textContent = hint
+}
+
+// setTimeout that is cancelled when the session ends.
+function later(callback, delayMs) {
+  timers.push(setTimeout(callback, delayMs))
+}
+
+function wait(delayMs) {
+  return new Promise(resolve => later(resolve, delayMs))
+}
+
+function clearTimers() {
+  timers.forEach(clearTimeout)
+  timers = []
+}
+
+/* Camera */
+
+async function startCamera() {
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      throw new Error('getUserMedia is not available (the page must be served over HTTPS or from localhost)')
     }
-  }, 1000)
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { width: { ideal: CAPTURE_IDEAL_WIDTH }, height: { ideal: CAPTURE_IDEAL_HEIGHT } },
+      audio: false,
+    })
+    const track = stream.getVideoTracks()[0]
+    const settings = track.getSettings()
+    console.log('Camera is', track.label)
+    console.log('Got video', settings.width + 'x' + settings.height, 'fps=' + settings.frameRate)
+    track.addEventListener('ended', () => cameraFailed(new Error('Camera disconnected')))
+
+    el.preview.srcObject = stream
+    await el.preview.play()
+    goIdle()
+  } catch (err) {
+    cameraFailed(err)
+  }
+}
+
+function cameraFailed(err) {
+  console.error(err)
+  clearTimers()
+  session += 1
+  setState('camera-error')
+  showMessage(TEXT.cameraError, TEXT.cameraRetry)
+  setTimeout(startCamera, CAMERA_RETRY_MS)
+}
+
+/* States */
+
+function goIdle() {
+  clearTimers()
+  session += 1
+
+  el.photo.classList.remove('loaded')
+  el.photo.removeAttribute('src')
+  el.qrcode.removeAttribute('src')
+  el.qrcodeBackground.removeAttribute('src')
+  el.download.dataset.status = 'uploading'
+  el.countdownEnd.textContent = ''
+
+  setState('idle')
+  showMessage(TEXT.idle)
+}
+
+async function startCountdown() {
+  const mySession = session
+  setState('countdown')
+  for (let remaining = COUNTDOWN_SECONDS; remaining > 0; remaining--) {
+    showMessage(String(remaining), TEXT.smile)
+    await wait(1000)
+    if (mySession !== session) return
+  }
+  takePhoto(mySession)
+}
+
+function takePhoto(mySession) {
+  drawCapture()
+  flash()
+  setState('uploading')
+
+  el.capture.toBlob(async blob => {
+    if (mySession !== session) return
+    try {
+      const photoUUID = await uploadPhoto(blob)
+      if (mySession !== session) return
+      showResult(photoUUID, mySession)
+    } catch (err) {
+      if (mySession !== session) return
+      console.error(err)
+      showFailure()
+    }
+  }, 'image/jpeg', JPEG_QUALITY)
+}
+
+// Copy the current video frame to the canvas, at the camera native
+// resolution, center-cropped to the mask aspect ratio. The canvas doubles as
+// the freeze frame shown while the photo is uploaded.
+function drawCapture() {
+  const video = el.preview
+  const canvas = el.capture
+  let sourceWidth = video.videoWidth
+  let sourceHeight = video.videoHeight
+  let sourceX = 0
+  let sourceY = 0
+
+  if (sourceWidth / sourceHeight > CAPTURE_ASPECT_RATIO) {
+    sourceWidth = Math.round(sourceHeight * CAPTURE_ASPECT_RATIO)
+    sourceX = Math.round((video.videoWidth - sourceWidth) / 2)
+  } else {
+    sourceHeight = Math.round(sourceWidth / CAPTURE_ASPECT_RATIO)
+    sourceY = Math.round((video.videoHeight - sourceHeight) / 2)
+  }
+
+  canvas.width = sourceWidth
+  canvas.height = sourceHeight
+  canvas.getContext('2d').drawImage(
+    video, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, sourceWidth, sourceHeight,
+  )
+}
+
+function flash() {
+  el.flash.classList.remove('active')
+  // Force a reflow so the animation restarts even if it is still running.
+  void el.flash.offsetWidth
+  el.flash.classList.add('active')
+}
+
+async function uploadPhoto(blob) {
+  if (!blob) {
+    throw new Error('Could not encode the photo')
+  }
+  const response = await fetch('/photo/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'image/jpeg' },
+    body: blob,
+  })
+  if (!response.ok) {
+    throw new Error('Upload failed with HTTP ' + response.status)
+  }
+  return (await response.text()).trim()
+}
+
+function showResult(photoUUID, mySession) {
+  setState('result')
+  el.download.dataset.status = 'pending'
+  resultClickableAt = Date.now() + RESULT_CLICK_GRACE_MS
+
+  el.photo.onload = () => el.photo.classList.add('loaded')
+  el.photo.src = '/img-result/' + photoUUID + '/'
+
+  waitForPublication(photoUUID, mySession)
+  countdownToIdle(mySession)
 }
 
 // The QR codes point to the download server, which only has the photo once
 // the rsync task is done: don't show them before that.
-async function waitForPublication(photoUUID) {
-  const deadline = Date.now() + 60000
+async function waitForPublication(photoUUID, mySession) {
+  const deadline = Date.now() + PUBLISH_TIMEOUT_MS
   while (Date.now() < deadline) {
     try {
       const response = await fetch('/status/' + photoUUID + '/')
+      if (mySession !== session) return
       if (response.ok && (await response.json()).published) {
-        qrcodeImg.src = '/qrcode/' + photoUUID + '/'
-        qrcodeBackgroundImg.src = '/qrcode-background/' + photoUUID + '/'
+        if (mySession !== session) return
+        el.qrcode.src = '/qrcode/' + photoUUID + '/'
+        el.qrcodeBackground.src = '/qrcode-background/' + photoUUID + '/'
+        el.download.dataset.status = 'ready'
         return
       }
     } catch (err) {
       console.error(err)
     }
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await wait(PUBLISH_POLL_MS)
+    if (mySession !== session) return
   }
-  qrcodeImg.alt = qrcodeBackgroundImg.alt = 'Téléchargement indisponible pour le moment'
+  el.download.dataset.status = 'unavailable'
 }
 
-function canvasToBase64() {
-  return Bigcanvas.toDataURL('image/jpeg', 0.98)
+async function countdownToIdle(mySession) {
+  for (let remaining = RESULT_SECONDS; remaining > 0; remaining--) {
+    const unit = remaining > 1 ? 'secondes' : 'seconde'
+    el.countdownEnd.textContent =
+      "Cette page s'auto-détruira dans " + remaining + ' ' + unit +
+      '. Appuyez sur le buzzer quand vous avez fini. Merci et bon Capitole du Libre :)'
+    await wait(1000)
+    if (mySession !== session) return
+  }
+  goIdle()
 }
+
+async function showFailure() {
+  const mySession = session
+  setState('failed')
+  showMessage(TEXT.failed, TEXT.failedHint)
+  await wait(FAILED_SECONDS * 1000)
+  if (mySession !== session) return
+  goIdle()
+}
+
+/* Buzzer: a mouse click, or a key for buzzers that emulate a keyboard. */
+
+function onBuzzer() {
+  if (state === 'idle') {
+    startCountdown()
+  } else if (state === 'result' && Date.now() >= resultClickableAt) {
+    goIdle()
+  }
+}
+
+document.addEventListener('click', onBuzzer)
+document.addEventListener('keydown', event => {
+  if (!event.repeat) {
+    onBuzzer()
+  }
+})
+
+startCamera()

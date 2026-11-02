@@ -30,12 +30,12 @@ urlpatterns = [
         name="qrcode-background",
     ),
     path(
+        "img-result/<uuid:photo_uuid>/", photobooth.views.img_result, name="img-result"
+    ),
+    path(
         "status/<uuid:photo_uuid>/",
         photobooth.views.photo_status,
         name="photo-status",
-    ),
-    path(
-        "img-result/<uuid:photo_uuid>/", photobooth.views.img_result, name="img-result"
     ),
     path(
         "static/<path:path>",
