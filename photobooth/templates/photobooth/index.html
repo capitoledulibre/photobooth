@@ -38,14 +38,14 @@
       </form>
 
       <div class="container text-center">
-        <h2 id="qrcodeText">Scanner un QR code pour Télécharger votre photo.</h2>
+        <h2 class="qrcodeText">Scanner un QR code pour Télécharger votre photo.</h2>
         <div class="row">
           <div class="col">
-            <h4 id="qrcodeText">Sans contour</h4>
+            <h4 class="qrcodeText">Sans contour</h4>
             <img id='qrcode' src="" alt="QR Code en cours de chargement..." class="center" width="300" height="300" />
           </div>
           <div class="col">
-            <h4 id="qrcodeText">Avec contour</h4>
+            <h4 class="qrcodeText">Avec contour</h4>
             <img id='qrcode_background' src="" alt="QR Code en cours de chargement..." class="center" width="300" height="300" />
           </div>
         </div>
@@ -62,8 +62,7 @@
     {% endif %}
   </script>
   <script src="/static/js/bootstrap.bundle.min.js"></script>
-  <script src="/static/js/index.js" />
-  </script>
+  <script src="/static/js/index.js"></script>
 </body>
 
 </html>

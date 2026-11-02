@@ -28,9 +28,9 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
   navigator.mediaDevices
     .getUserMedia({ video: { width: captureWidth, height: captureHeight } })
     .then(stream => {
-      tmp = stream.getVideoTracks()
-      settings = tmp[0].getSettings()
-      console.log("Camera is ", tmp[0].label)
+      const tracks = stream.getVideoTracks()
+      const settings = tracks[0].getSettings()
+      console.log("Camera is ", tracks[0].label)
       console.log("Get video with ", settings.width, "x", settings.height, " fps=", settings.frameRate, " aspect=", settings.aspectRatio);
       cameraAspectRation = settings.aspectRatio
       video.srcObject = stream
@@ -62,6 +62,9 @@ function snapAndSendImage() {
         body: canvasToBase64()
       })
       fetch(myRequest).then(async function (response) {
+        if (!response.ok) {
+          throw new Error('Upload failed with HTTP ' + response.status)
+        }
         currentPhotoUUID = await response.text()
         if (use_qr_code) {
           form.style.display = 'none'
@@ -89,6 +92,15 @@ function snapAndSendImage() {
           qrcodeImg.style.display = 'none'
           qrcodeBackgroundImg.style.display = 'none'
         }
+      }).catch(err => {
+        // Don't leave the kiosk stuck on an empty screen: tell the user and
+        // reset the page so the next person can try again.
+        console.error(err)
+        secondScreenContainer.style.display = 'none'
+        debounce.innerText = 'Oups, la photo n\'a pas pu être enregistrée. Veuillez réessayer.'
+        setTimeout(() => {
+          window.location.reload()
+        }, 5000)
       })
     } else {
       debounce.innerText = i + '...'
@@ -114,11 +126,17 @@ document.getElementById('submit').addEventListener('click', function (e) {
     body: JSON.stringify({ email: email.value, uuid: currentPhotoUUID })
   })
   fetch(myRequest).then(response => {
+    if (!response.ok) {
+      throw new Error('Email request failed with HTTP ' + response.status)
+    }
     secondScreenContainer.style.display = 'none'
     success.style.display = 'block'
     setTimeout(() => {
       window.location.reload()
     }, 5000)
+  }).catch(err => {
+    console.error(err)
+    error.innerText = "L'envoi du mail a échoué, veuillez réessayer"
   })
 })
 
