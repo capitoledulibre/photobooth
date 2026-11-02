@@ -39,6 +39,15 @@ uv run python manage.py runserver 8005
 
 Then visit http://localhost:8005
 
+To run the tests and the linters:
+
+```sh
+uv run python manage.py test
+pre-commit run --all-files
+```
+
+Or both at once with `uv run tox`.
+
 To run with Docker:
 
 * You need an ssh/id_rsa key that is allowed to rsync files to the remote
