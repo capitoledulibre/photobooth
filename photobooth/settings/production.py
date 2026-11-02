@@ -1,4 +1,3 @@
-# flake8: noqa
 from photobooth.settings.base import *
 
 DEBUG = False

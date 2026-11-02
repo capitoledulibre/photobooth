@@ -21,8 +21,6 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "autopep8",
-    "flake8",
     "tox",
 ]
 
