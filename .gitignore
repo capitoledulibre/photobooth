@@ -110,3 +110,4 @@ front/node_modules/
 /ssh/
 
 .DS_Store
+/branding/

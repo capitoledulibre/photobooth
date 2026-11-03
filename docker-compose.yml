@@ -4,8 +4,17 @@ services:
         environment:
         - DJANGO_SETTINGS_MODULE=photobooth.settings.production
         - DJANGO_DATABASE_PASSWORD
+        # Photo overlay, see "Photo overlay" in the README. Variables left
+        # unset in the shell or in .env keep their default.
+        - PHOTOBOOTH_FRAME_TEXT
+        - PHOTOBOOTH_FRAME_COLOR
+        - PHOTOBOOTH_FRAME_LOGO
+        - PHOTOBOOTH_FRAME_LOGO_COLOR
         volumes:
         - media:/srv/app/media
+        # Put a custom logo in ./branding and set
+        # PHOTOBOOTH_FRAME_LOGO=/srv/app/branding/<file>.png
+        - ./branding:/srv/app/branding:ro
         ports:
         - 8005:8000
         restart: unless-stopped

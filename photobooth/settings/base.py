@@ -139,6 +139,18 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 DATA_UPLOAD_MAX_MEMORY_SIZE = 1024*1024*20
 
 PHOTOBOOTH_BASE_URL = 'https://photo.capitoledulibre.org/'
-# Text of the pill next to the logo on the photos. None: the current year.
-PHOTOBOOTH_FRAME_TEXT = None
+# Overlay drawn on the photos (see photobooth/frame.py), configurable with
+# environment variables.
+# Text of the pill on the right. Unset: the current year; empty: no pill.
+PHOTOBOOTH_FRAME_TEXT = os.environ.get('PHOTOBOOTH_FRAME_TEXT')
+# Pill color: "#d03d00", "d03d00" or a color name. The text color (white or
+# dark) is picked for readability.
+PHOTOBOOTH_FRAME_COLOR = os.environ.get('PHOTOBOOTH_FRAME_COLOR', '#d03d00')
+# Logo on the left: a PNG with transparency.
+PHOTOBOOTH_FRAME_LOGO = os.environ.get(
+    'PHOTOBOOTH_FRAME_LOGO',
+    os.path.join(STATIC_ROOT, 'img', 'logo-capitoledulibre-horizontal.png'),
+)
+# Color the logo is painted in. Empty: keep the logo original colors.
+PHOTOBOOTH_FRAME_LOGO_COLOR = os.environ.get('PHOTOBOOTH_FRAME_LOGO_COLOR', '#ffffff')
 PHOTOBOOTH_RSYNC_COMMAND = 'echo rsync'

@@ -10,7 +10,7 @@ from exif import DATETIME_STR_FORMAT, GpsAltitudeRef
 from exif import Image as ImageExif
 from PIL import Image
 
-from photobooth.frame import build_frame, frame_text
+from photobooth.frame import build_frame, current_style
 
 # Quality used when re-encoding the photo with the frame.
 JPEG_QUALITY = 92
@@ -45,7 +45,7 @@ def duplicate_image_with_background(photo_uuid: uuid.UUID, now: str) -> str:
     Saves a copy of the photo with the event frame on top of it.
     """
     with Image.open(_photo_path(photo_uuid, now)) as img:
-        frame = build_frame(img.width, img.height, frame_text())
+        frame = build_frame(img.width, img.height, current_style())
 
         # The third argument uses the frame alpha channel for transparency.
         img.paste(frame, (0, 0), frame)
