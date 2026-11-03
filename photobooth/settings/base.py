@@ -139,4 +139,6 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 DATA_UPLOAD_MAX_MEMORY_SIZE = 1024*1024*20
 
 PHOTOBOOTH_BASE_URL = 'https://photo.capitoledulibre.org/'
+# Text of the pill next to the logo on the photos. None: the current year.
+PHOTOBOOTH_FRAME_TEXT = None
 PHOTOBOOTH_RSYNC_COMMAND = 'echo rsync'

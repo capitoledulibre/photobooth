@@ -2,6 +2,7 @@ import io
 import shutil
 import tempfile
 import uuid
+from datetime import date
 from unittest import mock
 
 import qrcode
@@ -10,6 +11,7 @@ from exif import Image as ImageExif
 from PIL import Image
 
 import photobooth.tasks
+from photobooth import frame
 from photobooth.models import Photo
 
 
@@ -70,17 +72,25 @@ class PhotoboothTestCase(TestCase):
         self.assertIsNone(photo.published_at)
         self.rsync_delay.assert_called_once_with()
 
-    def test_background_is_scaled_to_the_photo(self):
-        # The mask is 4K; a 1080p photo must get the whole frame, not a
-        # quarter of it.
+    def test_photo_with_frame(self):
         photo = self.take_photo(1920, 1080)
 
         with Image.open(photo.photo_with_bg.path) as img:
             self.assertEqual(img.format, "JPEG")
             self.assertEqual(img.size, (1920, 1080))
-            # The mask frame covers the bottom-right corner, which is outside
-            # the top-left quarter that an unscaled mask would cover.
-            self.assertNotEqual(img.getpixel((1910, 1070)), (0, 0, 255))
+            rgb = img.convert("RGB")
+            # Photo untouched at the top and in the middle.
+            self.assertBlue(rgb.getpixel((960, 20)))
+            self.assertBlue(rgb.getpixel((960, 540)))
+            # Darkened by the gradient at the bottom.
+            blue = rgb.getpixel((960, 1075))[2]
+            self.assertLess(blue, 120)
+
+    def assertBlue(self, pixel):
+        red, green, blue = pixel
+        self.assertLess(red, 20)
+        self.assertLess(green, 20)
+        self.assertGreater(blue, 235)
 
     def test_qrcodes_contain_plain_urls(self):
         photo = self.take_photo()
@@ -138,3 +148,56 @@ class PhotoboothTestCase(TestCase):
             f"/status/{unknown}/",
         ):
             self.assertEqual(self.client.get(url).status_code, 404, url)
+
+
+class FrameTestCase(TestCase):
+    def test_overlay_scales_with_the_photo(self):
+        for width, height in ((3840, 2160), (1920, 1080), (640, 360)):
+            img = frame.build_frame(width, height, "2026")
+            self.assertEqual(img.size, (width, height))
+            self.assertEqual(img.mode, "RGBA")
+            alpha = img.getchannel("A")
+            # Transparent at the top and in the middle, shaded at the bottom.
+            self.assertEqual(
+                alpha.crop((0, 0, width, height // 2)).getextrema(), (0, 0)
+            )
+            self.assertGreater(alpha.getpixel((width // 2, height - 1)), 150)
+
+    def test_logo_and_pill_are_drawn(self):
+        img = frame.build_frame(1920, 1080, "2026").convert("RGB")
+        bottom = img.crop((0, 1080 - 150, 1920, 1080))
+        colors = {color for _, color in bottom.getcolors(1 << 20)}
+        self.assertIn(frame.WHITE, colors)
+        self.assertIn(frame.ORANGE, colors)
+
+    def test_no_pill_without_text(self):
+        img = frame.build_frame(1920, 1080, "").convert("RGB")
+        colors = {color for _, color in img.getcolors(1 << 20)}
+        self.assertIn(frame.WHITE, colors)
+        self.assertNotIn(frame.ORANGE, colors)
+
+    def test_long_text_does_not_overlap_the_logo(self):
+        img = frame.build_frame(1920, 1080, "2026 · " + "capitoledulibre.org " * 4)
+        alpha = frame._logo_alpha()[0]
+        logo_width = round(alpha.width * frame.CAP_HEIGHT / frame._logo_alpha()[2])
+        margin = frame.MARGIN
+        # Between the logo and the pill there is only the gradient: no orange.
+        gap = img.crop(
+            (margin + logo_width + 2, 900, 2 * margin + logo_width - 2, 1080)
+        )
+        colors = {color[:3] for _, color in gap.getcolors(1 << 20)}
+        self.assertNotIn(frame.ORANGE, colors)
+        # And the pill is still there.
+        colors = {color[:3] for _, color in img.getcolors(1 << 20)}
+        self.assertIn(frame.ORANGE, colors)
+
+    @override_settings(PHOTOBOOTH_FRAME_TEXT=None)
+    def test_default_text_is_the_current_year(self):
+        with mock.patch(
+            "django.utils.timezone.localdate", return_value=date(2031, 11, 15)
+        ):
+            self.assertEqual(frame.frame_text(), "2031")
+
+    @override_settings(PHOTOBOOTH_FRAME_TEXT="2026 · capitoledulibre.org")
+    def test_text_can_be_overridden(self):
+        self.assertEqual(frame.frame_text(), "2026 · capitoledulibre.org")

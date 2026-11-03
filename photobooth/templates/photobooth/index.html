@@ -5,8 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="/static/css/main.css" />
-  <!-- No favicon: avoids a useless 404 on every page load. -->
-  <link rel="icon" href="data:," />
+  <link rel="icon" type="image/svg+xml" href="/static/img/icon-capitoledulibre.svg" />
   <title>Photobooth Capitole du Libre</title>
 </head>
 
@@ -22,7 +21,7 @@
   <div id="flash"></div>
 
   <main id="result">
-    <img class="logo" src="/static/img/logo-capitoledulibre.png" alt="Capitole du Libre" />
+    <img class="logo" src="/static/img/logo-capitoledulibre-horizontal.svg" alt="Capitole du Libre" />
 
     <div class="frame">
       <!-- Freeze frame shown right away, replaced by the framed photo once the
@@ -38,12 +37,12 @@
       <p class="status status-unavailable">Le téléchargement n'est pas disponible pour le moment, désolé.</p>
       <div class="qrcodes">
         <figure>
-          <img id="qrcode" alt="QR code de la photo sans contour" />
-          <figcaption>Sans contour</figcaption>
+          <img id="qrcode" alt="QR code de la photo seule" />
+          <figcaption>Photo seule</figcaption>
         </figure>
         <figure>
-          <img id="qrcode-background" alt="QR code de la photo avec contour" />
-          <figcaption>Avec contour</figcaption>
+          <img id="qrcode-background" alt="QR code de la photo avec le logo" />
+          <figcaption>Avec le logo</figcaption>
         </figure>
       </div>
     </aside>

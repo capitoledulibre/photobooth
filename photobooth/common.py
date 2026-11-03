@@ -10,7 +10,9 @@ from exif import DATETIME_STR_FORMAT, GpsAltitudeRef
 from exif import Image as ImageExif
 from PIL import Image
 
-# Quality used when re-encoding the photo with the background mask.
+from photobooth.frame import build_frame, frame_text
+
+# Quality used when re-encoding the photo with the frame.
 JPEG_QUALITY = 92
 
 
@@ -40,18 +42,13 @@ def add_exif_data(photo_uuid: uuid.UUID, now: str):
 
 def duplicate_image_with_background(photo_uuid: uuid.UUID, now: str) -> str:
     """
-    Saves a copy of the photo with the photobooth mask on top of it.
+    Saves a copy of the photo with the event frame on top of it.
     """
-    mask_path = os.path.join(settings.STATIC_ROOT, "img", "photobooth-mask.png")
+    with Image.open(_photo_path(photo_uuid, now)) as img:
+        frame = build_frame(img.width, img.height, frame_text())
 
-    with Image.open(_photo_path(photo_uuid, now)) as img, Image.open(mask_path) as mask:
-        # The mask is drawn for 4K; scale it so it frames photos taken by
-        # lower resolution cameras too, instead of only covering a corner.
-        if mask.size != img.size:
-            mask = mask.resize(img.size, Image.Resampling.LANCZOS)
-
-        # The third argument uses the mask alpha channel for transparency.
-        img.paste(mask, (0, 0), mask)
+        # The third argument uses the frame alpha channel for transparency.
+        img.paste(frame, (0, 0), frame)
 
         save_kwargs = {"format": "JPEG", "quality": JPEG_QUALITY}
         if "exif" in img.info:

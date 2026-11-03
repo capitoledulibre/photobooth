@@ -24,7 +24,7 @@ const FAILED_SECONDS = 5
 const CAMERA_RETRY_MS = 5000
 const PUBLISH_POLL_MS = 1000
 const PUBLISH_TIMEOUT_MS = 60000
-// Photos are cropped to the aspect ratio of the background mask (16:9).
+// Photos are cropped to 16:9, the aspect ratio the frame is designed for.
 const CAPTURE_ASPECT_RATIO = 16 / 9
 const CAPTURE_IDEAL_WIDTH = 3840
 const CAPTURE_IDEAL_HEIGHT = 2160
@@ -165,7 +165,7 @@ function takePhoto(mySession) {
 }
 
 // Copy the current video frame to the canvas, at the camera native
-// resolution, center-cropped to the mask aspect ratio. The canvas doubles as
+// resolution, center-cropped to the frame aspect ratio. The canvas doubles as
 // the freeze frame shown while the photo is uploaded.
 function drawCapture() {
   const video = el.preview
