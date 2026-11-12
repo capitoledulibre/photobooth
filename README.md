@@ -160,6 +160,14 @@ uv export --no-dev --no-hashes > requirements.txt
 pre-commit autoupdate
 ```
 
+## 🚢 Releasing
+
+Releases are cut by hand from the **Release** workflow on GitHub (Actions →
+Release → Run workflow). It tags the current `main` with a CalVer version
+(`YYYY.MM.DD.HHmmss`, UTC) and pushes an amd64 image to
+`ghcr.io/capitoledulibre/photobooth`, tagged with that version and `latest`.
+Images are built only there, not on every push.
+
 ## 📄 License
 
 The code is released under the [Apache License 2.0](LICENSE).
